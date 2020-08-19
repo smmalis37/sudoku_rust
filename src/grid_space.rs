@@ -21,7 +21,6 @@ impl Default for Cell {
 
 pub struct GridSpace {
     root: WidgetId,
-    textbox: TextBox,
     display: Container<Cell>,
 }
 
@@ -29,7 +28,6 @@ impl GridSpace {
     pub fn new(root: WidgetId) -> Self {
         Self {
             root,
-            textbox: TextBox::new(),
 
             display: Either::new(
                 |c: &Cell, _| c.value.is_some(),
@@ -112,10 +110,8 @@ impl Widget<Cell> for GridSpace {
 
                 _ => {}
             },
-            _ => {
-                // Pretend to be a textbox to get automatic handling of focus, etc.
-                self.textbox.event(ctx, event, &mut String::new(), env);
-            }
+            Event::MouseDown(_) => ctx.request_focus(),
+            _ => {}
         };
 
         if new_val != data.value {
