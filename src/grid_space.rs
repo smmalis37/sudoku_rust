@@ -60,8 +60,10 @@ impl GridSpace {
             for x in 0..SIZE {
                 row.add_flex_child(
                     Label::dynamic(move |c: &Cell, _| {
-                        if c.possibilities[y * SIZE + x] {
-                            radix(y * SIZE + x + 1, BASE).to_string()
+                        let index = y * SIZE + x;
+                        // TODO add better formatting to distinguish cases
+                        if c.possibilities[index] && !c.user_removed[index] {
+                            radix(index + 1, BASE).to_string()
                         } else {
                             String::new()
                         }
@@ -82,24 +84,37 @@ impl GridSpace {
 impl Widget<Cell> for GridSpace {
     fn event(&mut self, ctx: &mut EventCtx, event: &Event, data: &mut Cell, env: &Env) {
         // TODO handle arrow keys and tab
-        let new_val = match event {
-            Event::KeyDown(KeyEvent { key, .. }) => match key {
-                KbKey::Character(c) => c
-                    .chars()
-                    .last()
-                    .and_then(|c| c.to_digit(BASE as u32))
-                    .map(|n| n as u8)
-                    .filter(|&n| n != 0)
-                    .or(data.value),
+        let mut new_val = data.value;
+        match event {
+            Event::KeyDown(KeyEvent { key, mods, .. }) => match key {
+                KbKey::Character(c) => {
+                    let press = c
+                        .chars()
+                        .last()
+                        .and_then(|c| c.to_digit(BASE as u32))
+                        .map(|n| n as u8)
+                        .filter(|&n| n != 0);
 
-                KbKey::Backspace | KbKey::Delete => None, // TODO add others?
+                    if let Some(num) = press {
+                        if mods.ctrl() {
+                            let index = num as usize - 1;
+                            data.user_removed[index] = !data.user_removed[index];
+                        } else {
+                            new_val = press;
+                        }
+                    }
+                }
 
-                _ => data.value,
+                // TODO add others?
+                KbKey::Backspace | KbKey::Delete => {
+                    new_val = None;
+                }
+
+                _ => {}
             },
             _ => {
                 // Pretend to be a textbox to get automatic handling of focus, etc.
                 self.textbox.event(ctx, event, &mut String::new(), env);
-                data.value
             }
         };
 
