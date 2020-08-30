@@ -119,13 +119,18 @@ impl Widget<Cell> for GridSpace {
     fn lifecycle(&mut self, ctx: &mut LifeCycleCtx, event: &LifeCycle, data: &Cell, env: &Env) {
         self.display.lifecycle(ctx, event, &data, env);
 
-        if let LifeCycle::FocusChanged(i_focused) = event {
-            if *i_focused {
-                self.display.set_background(Color::rgb(0.6, 0.8, 1.0));
-            } else {
-                self.display.set_background(Color::WHITE);
+        match event {
+            LifeCycle::WidgetAdded => ctx.register_for_focus(),
+
+            LifeCycle::FocusChanged(i_focused) => {
+                if *i_focused {
+                    self.display.set_background(Color::rgb(0.6, 0.8, 1.0));
+                } else {
+                    self.display.set_background(Color::WHITE);
+                }
+                ctx.request_paint(); // TODO needed?
             }
-            ctx.request_paint(); // TODO needed?
+            _ => {}
         }
     }
 
