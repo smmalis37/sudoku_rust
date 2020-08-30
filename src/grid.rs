@@ -40,6 +40,7 @@ pub fn make_grid() -> impl Widget<State> {
 
 struct Grid;
 
+// TODO: conflicts? solos? emptys?
 #[allow(clippy::needless_range_loop)]
 impl<W: Widget<State>> Controller<State, W> for Grid {
     fn event(

@@ -34,7 +34,7 @@ impl GridSpace {
             )
             .center()
             .background(Color::WHITE)
-            .border(Color::BLACK, 0.5),
+            .border(Color::grey(0.5), 0.5),
         }
     }
 
@@ -60,8 +60,8 @@ impl GridSpace {
                             String::new()
                         }
                     })
-                    .with_text_size(13.0) // TODO: look into flexing text size
-                    .with_text_color(Color::BLACK)
+                    .with_text_size(12.0) // TODO: look into flexing text size
+                    .with_text_color(Color::grey(0.5))
                     .center(),
                     1.0,
                 );
