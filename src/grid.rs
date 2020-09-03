@@ -11,10 +11,10 @@ pub fn make_grid() -> impl Widget<State> {
     let mut column = Flex::column();
     let root_id = WidgetId::next();
 
-    for y in 0usize..SIZE2 {
+    for y in 0..SIZE2 {
         let mut row = Flex::row();
 
-        for x in 0usize..SIZE2 {
+        for x in 0..SIZE2 {
             if x % SIZE == 0 && x != 0 {
                 row.add_flex_spacer(SPACER_FLEX);
             }

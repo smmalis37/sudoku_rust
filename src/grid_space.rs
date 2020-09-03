@@ -39,7 +39,7 @@ impl GridSpace {
     }
 
     fn make_value_label() -> impl Widget<Cell> {
-        Label::dynamic(|c: &Cell, _| c.value.map(|n| radix_string(n, BASE)).unwrap_or_default())
+        Label::dynamic(|c: &Cell, _| c.value.map(radix_string).unwrap_or_default())
             .with_text_size(48.0) // TODO: look into flexing text size
             .with_text_color(Color::BLACK)
     }
@@ -55,7 +55,7 @@ impl GridSpace {
                         let num = y * SIZE + x + 1;
                         // TODO add better formatting to distinguish cases
                         if c.possibilities[num] && !c.user_removed[num] {
-                            radix_string(num, BASE)
+                            radix_string(num)
                         } else {
                             String::new()
                         }
@@ -146,9 +146,9 @@ impl Widget<Cell> for GridSpace {
     }
 }
 
-fn radix_string<T>(n: T, base: u8) -> String
+fn radix_string<T>(n: T) -> String
 where
     radix_fmt::Radix<T>: std::fmt::Display,
 {
-    format!("{:#}", radix_fmt::radix(n, base))
+    format!("{:#}", radix_fmt::radix(n, BASE))
 }
