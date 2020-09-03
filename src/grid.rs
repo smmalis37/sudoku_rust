@@ -40,7 +40,6 @@ pub fn make_grid() -> impl Widget<State> {
 
 struct Grid;
 
-// TODO: conflicts? solos? emptys?
 #[allow(clippy::needless_range_loop)]
 impl<W: Widget<State>> Controller<State, W> for Grid {
     fn event(
@@ -59,6 +58,8 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
                         if let Some(n) = data.cells[y][x].value {
+                            let value_possible = new_possibilities[y][x][n];
+
                             for col in 0..SIZE2 {
                                 new_possibilities[col][x][n] = false;
                             }
@@ -72,6 +73,8 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                                     new_possibilities[square_y][square_x][n] = false;
                                 }
                             }
+
+                            new_possibilities[y][x][n] = value_possible;
                         }
                     }
                 }

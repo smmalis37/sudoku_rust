@@ -18,6 +18,21 @@ impl Default for Cell {
     }
 }
 
+// TODO: solos?
+impl Cell {
+    fn background_color(&self, focused: bool) -> Color {
+        if focused {
+            Color::rgb(0.6, 0.8, 1.0)
+        } else if (self.value.is_some() && !self.possibilities[self.value.unwrap()])
+            || self.possibilities.iter().all(|p| !p)
+        {
+            Color::rgb(1.0, 0.6, 0.6)
+        } else {
+            Color::WHITE
+        }
+    }
+}
+
 pub struct GridSpace {
     root: WidgetId,
     display: Container<Cell>,
@@ -121,19 +136,17 @@ impl Widget<Cell> for GridSpace {
         match event {
             LifeCycle::WidgetAdded => ctx.register_for_focus(),
 
-            LifeCycle::FocusChanged(i_focused) => {
-                if *i_focused {
-                    self.display.set_background(Color::rgb(0.6, 0.8, 1.0));
-                } else {
-                    self.display.set_background(Color::WHITE);
-                }
-                ctx.request_paint(); // TODO needed?
+            LifeCycle::FocusChanged(focused) => {
+                self.display.set_background(data.background_color(*focused))
             }
+
             _ => {}
         }
     }
 
     fn update(&mut self, ctx: &mut UpdateCtx, old_data: &Cell, data: &Cell, env: &Env) {
+        self.display
+            .set_background(data.background_color(ctx.has_focus()));
         self.display.update(ctx, &old_data, &data, env);
     }
 

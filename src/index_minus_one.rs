@@ -38,3 +38,11 @@ impl<T: Copy + Clone + Data> IndexMut<usize> for IndexMinusOne<T> {
         &mut self.0[index - 1]
     }
 }
+
+impl<T: Copy + Clone + Data> std::ops::Deref for IndexMinusOne<T> {
+    type Target = [T; SIZE2];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
