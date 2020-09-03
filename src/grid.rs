@@ -1,4 +1,4 @@
-use crate::{consts::*, grid_space::*};
+use crate::{consts::*, grid_space::*, index_minus_one::*};
 use druid::{widget::*, *};
 
 #[derive(Clone, Default, Data)]
@@ -54,24 +54,22 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
         match event {
             Event::Command(c) if c.is(RECOMPUTE_SELECTOR) => {
                 println!("Recompute");
-                let mut new_possibilities: [[[bool; SIZE2]; SIZE2]; SIZE2] =
-                    [[[true; SIZE2]; SIZE2]; SIZE2];
+                let mut new_possibilities = [[IndexMinusOne::new(true); SIZE2]; SIZE2];
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
                         if let Some(n) = data.cells[y][x].value {
-                            let index = n as usize - 1;
                             for col in 0..SIZE2 {
-                                new_possibilities[col][x][index] = false;
+                                new_possibilities[col][x][n] = false;
                             }
                             for row in 0..SIZE2 {
-                                new_possibilities[y][row][index] = false;
+                                new_possibilities[y][row][n] = false;
                             }
                             let y_corner = (y / SIZE) * SIZE;
                             for square_y in y_corner..y_corner + SIZE {
                                 let x_corner = (x / SIZE) * SIZE;
                                 for square_x in x_corner..x_corner + SIZE {
-                                    new_possibilities[square_y][square_x][index] = false;
+                                    new_possibilities[square_y][square_x][n] = false;
                                 }
                             }
                         }

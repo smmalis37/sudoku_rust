@@ -1,6 +1,7 @@
 mod consts;
 mod grid;
 mod grid_space;
+mod index_minus_one;
 
 use consts::SIZE2;
 use grid::make_grid;

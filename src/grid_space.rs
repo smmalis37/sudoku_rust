@@ -1,19 +1,19 @@
-use crate::consts::*;
+use crate::{consts::*, index_minus_one::*};
 use druid::{widget::*, *};
 
 #[derive(Clone, Data)]
 pub struct Cell {
-    pub value: Option<u8>,
-    pub possibilities: [bool; SIZE2],
-    user_removed: [bool; SIZE2],
+    pub value: Option<Num>,
+    pub possibilities: IndexMinusOne<bool>,
+    user_removed: IndexMinusOne<bool>,
 }
 
 impl Default for Cell {
     fn default() -> Self {
         Self {
             value: None,
-            possibilities: [true; SIZE2],
-            user_removed: [false; SIZE2],
+            possibilities: IndexMinusOne::new(true),
+            user_removed: IndexMinusOne::new(false),
         }
     }
 }
@@ -52,10 +52,10 @@ impl GridSpace {
             for x in 0..SIZE {
                 row.add_flex_child(
                     Label::dynamic(move |c: &Cell, _| {
-                        let index = y * SIZE + x;
+                        let num = y * SIZE + x + 1;
                         // TODO add better formatting to distinguish cases
-                        if c.possibilities[index] && !c.user_removed[index] {
-                            radix_string(index + 1, BASE)
+                        if c.possibilities[num] && !c.user_removed[num] {
+                            radix_string(num, BASE)
                         } else {
                             String::new()
                         }
@@ -83,14 +83,13 @@ impl Widget<Cell> for GridSpace {
                         .chars()
                         .last()
                         .and_then(|c| c.to_digit(BASE as u32))
-                        .map(|n| n as u8)
+                        .map(|n| n as Num)
                         .filter(|&n| n != 0);
 
                     if let Some(num) = press {
                         if mods.ctrl() {
                             // TODO switch to shift?
-                            let index = num as usize - 1;
-                            data.user_removed[index] = !data.user_removed[index];
+                            data.user_removed[num] = !data.user_removed[num];
                         } else {
                             new_val = press;
                         }
