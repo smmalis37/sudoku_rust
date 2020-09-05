@@ -1,7 +1,7 @@
 use crate::{consts::*, grid_space::*, index_minus_one::*};
 use druid::{widget::*, *};
 
-#[derive(Clone, Default, Data)]
+#[derive(Clone, Default, Data, Lens)]
 pub struct State {
     cells: [[Cell; SIZE2]; SIZE2],
 }
@@ -20,10 +20,7 @@ pub fn make_grid() -> impl Widget<State> {
             }
 
             row.add_flex_child(
-                GridSpace::new(root_id).lens(lens::Field::new(
-                    move |g: &State| &g.cells[y][x],
-                    move |g| &mut g.cells[y][x],
-                )),
+                GridSpace::new(root_id).lens(State::cells.as_ref().index(y).as_ref().index(x)),
                 1.0,
             );
         }
