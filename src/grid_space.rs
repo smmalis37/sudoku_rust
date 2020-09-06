@@ -126,6 +126,7 @@ impl Widget<Cell> for GridSpace {
         if new_val != data.value {
             data.value = new_val;
             ctx.submit_command(RECOMPUTE_SELECTOR.with(()), self.root);
+            ctx.request_paint();
         }
 
         self.display.event(ctx, event, data, env);
@@ -138,7 +139,8 @@ impl Widget<Cell> for GridSpace {
             LifeCycle::WidgetAdded => ctx.register_for_focus(),
 
             LifeCycle::FocusChanged(focused) => {
-                self.display.set_background(data.background_color(*focused))
+                self.display.set_background(data.background_color(*focused));
+                ctx.request_paint();
             }
 
             _ => {}
