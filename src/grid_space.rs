@@ -128,7 +128,9 @@ impl Widget<Cell> for GridSpace {
                     if let Some(num) = press {
                         if mods.ctrl() {
                             // TODO switch to shift?
-                            data.user_removed[num] = !data.user_removed[num];
+                            if data.value.is_none() && data.possibilities[num] {
+                                data.user_removed[num] = !data.user_removed[num];
+                            }
                         } else {
                             new_val = press;
                         }
