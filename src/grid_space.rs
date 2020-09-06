@@ -23,14 +23,23 @@ impl Cell {
         if focused {
             Color::rgb(0.6, 0.8, 1.0)
         } else if (self.value.is_some() && !self.possibilities[self.value.unwrap()])
-            || self.possibilities.iter().all(|p| !p)
+            || self.possiblity_iter().all(|(p, ur)| !p || ur)
         {
             Color::rgb(1.0, 0.6, 0.6)
-        } else if self.value.is_none() && self.possibilities.iter().filter(|&&x| x).count() == 1 {
+        } else if self.value.is_none()
+            && self.possiblity_iter().filter(|&(p, ur)| p && !ur).count() == 1
+        {
             Color::rgb(0.7, 1.0, 0.7)
         } else {
             Color::WHITE
         }
+    }
+
+    fn possiblity_iter(&self) -> impl Iterator<Item = (bool, bool)> + '_ {
+        self.possibilities
+            .iter()
+            .copied()
+            .zip(self.user_removed.iter().copied())
     }
 }
 
