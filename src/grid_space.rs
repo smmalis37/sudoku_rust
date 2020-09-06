@@ -26,9 +26,7 @@ impl Cell {
             || self.possiblity_iter().all(|(p, ur)| !p || ur)
         {
             Color::rgb(1.0, 0.6, 0.6)
-        } else if self.value.is_none()
-            && self.possiblity_iter().filter(|&(p, ur)| p && !ur).count() == 1
-        {
+        } else if self.value.is_none() && self.one_possibility().is_some() {
             Color::rgb(0.7, 1.0, 0.7)
         } else {
             Color::WHITE
@@ -40,6 +38,21 @@ impl Cell {
             .iter()
             .copied()
             .zip(self.user_removed.iter().copied())
+    }
+
+    // TODO override enumerate to handle +1 ?
+    pub fn one_possibility(&self) -> Option<Num> {
+        let mut ret = None;
+        for (i, (p, ur)) in self.possiblity_iter().enumerate() {
+            if p && !ur {
+                if ret.is_none() {
+                    ret = Some(i as Num + 1)
+                } else {
+                    return None;
+                }
+            }
+        }
+        ret
     }
 }
 
@@ -134,7 +147,7 @@ impl Widget<Cell> for GridSpace {
 
         if new_val != data.value {
             data.value = new_val;
-            ctx.submit_command(RECOMPUTE_SELECTOR.with(()), self.root);
+            ctx.submit_command(RECOMPUTE_SELECTOR, self.root);
             ctx.request_paint();
         }
 
