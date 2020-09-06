@@ -91,11 +91,12 @@ impl GridSpace {
                 row.add_flex_child(
                     Label::dynamic(move |c: &Cell, _| {
                         let num = y * SIZE + x + 1;
-                        // TODO add better formatting to distinguish cases
-                        if c.possibilities[num] && !c.user_removed[num] {
-                            radix_string(num)
-                        } else {
+                        if !c.possibilities[num] {
                             String::new()
+                        } else if c.user_removed[num] {
+                            "█".to_string()
+                        } else {
+                            radix_string(num)
                         }
                     })
                     .with_text_size(12.0) // TODO: look into flexing text size
