@@ -39,6 +39,7 @@ impl<T: Copy + Clone + Data> IndexMut<usize> for IndexMinusOne<T> {
     }
 }
 
+// TODO remove to prevent misuses, like enumerate
 impl<T: Copy + Clone + Data> std::ops::Deref for IndexMinusOne<T> {
     type Target = [T; SIZE2];
 

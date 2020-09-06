@@ -90,13 +90,14 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                     }
                 }
             }
+
             Event::Command(c) if c.is(FILL_IN_SELECTOR) => {
                 println!("Fill in");
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
                         let c = &mut data.cells[y][x];
-                        if let Some(n) = c.one_possibility() {
-                            if c.value.is_none() {
+                        if c.value.is_none() {
+                            if let Some(n) = c.one_possibility() {
                                 c.value = Some(n);
                             }
                         }
@@ -104,6 +105,7 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                 }
                 ctx.submit_command(RECOMPUTE_SELECTOR, ctx.widget_id());
             }
+
             _ => child.event(ctx, event, data, env),
         }
     }
