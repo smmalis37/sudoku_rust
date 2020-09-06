@@ -18,7 +18,6 @@ impl Default for Cell {
     }
 }
 
-// TODO: solos?
 impl Cell {
     fn background_color(&self, focused: bool) -> Color {
         if focused {
@@ -27,6 +26,8 @@ impl Cell {
             || self.possibilities.iter().all(|p| !p)
         {
             Color::rgb(1.0, 0.6, 0.6)
+        } else if self.value.is_none() && self.possibilities.iter().filter(|&&x| x).count() == 1 {
+            Color::rgb(0.7, 1.0, 0.7)
         } else {
             Color::WHITE
         }
