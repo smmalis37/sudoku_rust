@@ -19,20 +19,6 @@ impl Default for Cell {
 }
 
 impl Cell {
-    fn background_color(&self, focused: bool) -> Color {
-        if focused {
-            Color::rgb(0.6, 0.8, 1.0)
-        } else if (self.value.is_some() && !self.possibilities[self.value.unwrap()])
-            || self.possiblity_iter().all(|(p, ur)| !p || ur)
-        {
-            Color::rgb(1.0, 0.6, 0.6)
-        } else if self.value.is_none() && self.one_possibility().is_some() {
-            Color::rgb(0.7, 1.0, 0.7)
-        } else {
-            Color::WHITE
-        }
-    }
-
     fn possiblity_iter(&self) -> impl Iterator<Item = (bool, bool)> + '_ {
         self.possibilities
             .iter()
@@ -109,6 +95,22 @@ impl GridSpace {
         }
         column
     }
+
+    fn set_background_color(&mut self, data: &Cell, focused: bool) {
+        let color = if focused {
+            Color::rgb(0.6, 0.8, 1.0)
+        } else if (data.value.is_some() && !data.possibilities[data.value.unwrap()])
+            || data.possiblity_iter().all(|(p, ur)| !p || ur)
+        {
+            Color::rgb(1.0, 0.6, 0.6)
+        } else if data.value.is_none() && data.one_possibility().is_some() {
+            Color::rgb(0.7, 1.0, 0.7)
+        } else {
+            Color::WHITE
+        };
+
+        self.display.set_background(color);
+    }
 }
 
 impl Widget<Cell> for GridSpace {
@@ -164,7 +166,7 @@ impl Widget<Cell> for GridSpace {
             LifeCycle::WidgetAdded => ctx.register_for_focus(),
 
             LifeCycle::FocusChanged(focused) => {
-                self.display.set_background(data.background_color(*focused));
+                self.set_background_color(data, *focused);
                 ctx.request_paint();
             }
 
@@ -173,8 +175,7 @@ impl Widget<Cell> for GridSpace {
     }
 
     fn update(&mut self, ctx: &mut UpdateCtx, old_data: &Cell, data: &Cell, env: &Env) {
-        self.display
-            .set_background(data.background_color(ctx.has_focus()));
+        self.set_background_color(data, ctx.has_focus());
         self.display.update(ctx, &old_data, &data, env);
     }
 
