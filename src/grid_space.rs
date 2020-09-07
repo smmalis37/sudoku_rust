@@ -144,6 +144,20 @@ impl Widget<Cell> for GridSpace {
                     new_val = None;
                 }
 
+                KbKey::ArrowLeft => ctx.focus_prev(),
+                KbKey::ArrowRight => ctx.focus_next(),
+
+                KbKey::ArrowUp => {
+                    for _ in 0..SIZE2 {
+                        ctx.focus_prev()
+                    }
+                }
+                KbKey::ArrowDown => {
+                    for _ in 0..SIZE2 {
+                        ctx.focus_next()
+                    }
+                }
+
                 _ => {}
             },
             Event::MouseDown(_) => ctx.request_focus(),
