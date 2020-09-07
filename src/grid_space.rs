@@ -119,7 +119,7 @@ impl GridSpace {
 
 impl Widget<Cell> for GridSpace {
     fn event(&mut self, ctx: &mut EventCtx, event: &Event, data: &mut Cell, env: &Env) {
-        // TODO handle arrow keys and tab
+        // TODO tab
         let mut new_val = data.value;
         match event {
             Event::KeyDown(KeyEvent { key, mods, .. }) => match key {
