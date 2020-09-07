@@ -150,13 +150,8 @@ impl Widget<Cell> for GridSpace {
 
                 KbKey::ArrowLeft => ctx.focus_prev(),
                 KbKey::ArrowRight => ctx.focus_next(),
-
-                KbKey::ArrowUp => {
-                    ctx.set_focus(self.up_target);
-                }
-                KbKey::ArrowDown => {
-                    ctx.set_focus(self.down_target);
-                }
+                KbKey::ArrowUp => ctx.set_focus(self.up_target),
+                KbKey::ArrowDown => ctx.set_focus(self.down_target),
 
                 _ => {}
             },
