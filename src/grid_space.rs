@@ -44,13 +44,17 @@ impl Cell {
 
 pub struct GridSpace {
     root: WidgetId,
+    up_target: WidgetId,
+    down_target: WidgetId,
     display: Container<Cell>,
 }
 
 impl GridSpace {
-    pub fn new(root: WidgetId) -> Self {
+    pub fn new(root: WidgetId, up_target: WidgetId, down_target: WidgetId) -> Self {
         Self {
             root,
+            up_target,
+            down_target,
             display: Either::new(
                 |c: &Cell, _| c.value.is_some(),
                 Self::make_value_label(),
@@ -148,14 +152,10 @@ impl Widget<Cell> for GridSpace {
                 KbKey::ArrowRight => ctx.focus_next(),
 
                 KbKey::ArrowUp => {
-                    for _ in 0..SIZE2 {
-                        ctx.focus_prev()
-                    }
+                    ctx.set_focus(self.up_target);
                 }
                 KbKey::ArrowDown => {
-                    for _ in 0..SIZE2 {
-                        ctx.focus_next()
-                    }
+                    ctx.set_focus(self.down_target);
                 }
 
                 _ => {}

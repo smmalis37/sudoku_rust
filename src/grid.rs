@@ -1,4 +1,5 @@
 use crate::{consts::*, grid_space::*, index_minus_one::*};
+use arraytools::ArrayTools;
 use druid::{widget::*, *};
 
 #[derive(Clone, Default, Data, Lens)]
@@ -11,6 +12,8 @@ pub fn make_grid() -> impl Widget<State> {
     let mut column = Flex::column();
     let root_id = WidgetId::next();
 
+    let space_ids = <[_; SIZE2]>::generate(|| <[_; SIZE2]>::generate(WidgetId::next));
+
     for y in 0..SIZE2 {
         let mut row = Flex::row();
 
@@ -19,8 +22,13 @@ pub fn make_grid() -> impl Widget<State> {
                 row.add_flex_spacer(SPACER_FLEX);
             }
 
+            let up_target = space_ids[if y == 0 { SIZE2 - 1 } else { y - 1 }][x];
+            let down_target = space_ids[if y == SIZE2 - 1 { 0 } else { y + 1 }][x];
+
             row.add_flex_child(
-                GridSpace::new(root_id).lens(State::cells.as_ref().index(y).as_ref().index(x)),
+                GridSpace::new(root_id, up_target, down_target)
+                    .with_id(space_ids[y][x])
+                    .lens(State::cells.as_ref().index(y).as_ref().index(x)),
                 1.0,
             );
         }
