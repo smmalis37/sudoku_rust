@@ -44,7 +44,7 @@ pub fn make_grid() -> impl Widget<State> {
     let mut button_row = Flex::row();
     button_row.add_child(
         Button::new("Fill in")
-            .on_click(move |ctx, _g, _env| ctx.submit_command(FILL_IN_SELECTOR, root_id)),
+            .on_click(move |ctx, _g, _env| ctx.submit_command(FILL_IN_SELECTOR.to(root_id))),
     );
     column.add_child(button_row);
 
@@ -111,7 +111,7 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                         }
                     }
                 }
-                ctx.submit_command(RECOMPUTE_SELECTOR, ctx.widget_id());
+                ctx.submit_command(RECOMPUTE_SELECTOR.to(ctx.widget_id()));
             }
 
             _ => child.event(ctx, event, data, env),

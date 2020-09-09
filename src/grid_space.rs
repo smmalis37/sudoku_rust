@@ -161,7 +161,7 @@ impl Widget<Cell> for GridSpace {
 
         if new_val != data.value {
             data.value = new_val;
-            ctx.submit_command(RECOMPUTE_SELECTOR, self.root);
+            ctx.submit_command(RECOMPUTE_SELECTOR.to(self.root));
             ctx.request_paint();
         }
 
