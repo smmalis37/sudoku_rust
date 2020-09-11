@@ -1,6 +1,7 @@
 mod consts;
 mod grid;
 mod grid_space;
+mod solo_state;
 mod sudoku_array;
 
 use consts::SIZE2;

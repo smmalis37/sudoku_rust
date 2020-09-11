@@ -1,6 +1,7 @@
 use crate::{
     consts::*,
     grid_space::{Cell, GridSpace},
+    solo_state::SoloState,
     sudoku_array::SudokuArray,
 };
 use arraytools::ArrayTools;
@@ -73,35 +74,64 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
         match event {
             Event::Command(c) if c.is(REGENERATE_SELECTOR) => {
                 println!("Regenerate");
-                let mut new_data = [[GeneratedCell::default(); SIZE2]; SIZE2];
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        if let Some(n) = data.cells[y][x].value() {
-                            let value_possible = new_data[y][x].possibilities[n];
-
-                            for col in 0..SIZE2 {
-                                new_data[col][x].possibilities[n] = false;
-                            }
-                            for row in 0..SIZE2 {
-                                new_data[y][row].possibilities[n] = false;
-                            }
-                            let y_corner = (y / SIZE) * SIZE;
-                            for square_y in y_corner..y_corner + SIZE {
-                                let x_corner = (x / SIZE) * SIZE;
-                                for square_x in x_corner..x_corner + SIZE {
-                                    new_data[square_y][square_x].possibilities[n] = false;
-                                }
-                            }
-
-                            new_data[y][x].possibilities[n] = value_possible;
-                        }
+                        data.cells[y][x].possibilities = SudokuArray::new(true);
+                        data.cells[y][x].solo = SoloState::None;
                     }
                 }
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        data.cells[y][x].set_generated(new_data[y][x]);
+                        if let Some(n) = data.cells[y][x].value {
+                            let value_possible = data.cells[y][x].possibilities[n];
+
+                            for col in 0..SIZE2 {
+                                data.cells[col][x].possibilities[n] = false;
+                            }
+                            for row in 0..SIZE2 {
+                                data.cells[y][row].possibilities[n] = false;
+                            }
+                            let y_corner = (y / SIZE) * SIZE;
+                            for square_y in y_corner..y_corner + SIZE {
+                                let x_corner = (x / SIZE) * SIZE;
+                                for square_x in x_corner..x_corner + SIZE {
+                                    data.cells[square_y][square_x].possibilities[n] = false;
+                                }
+                            }
+
+                            data.cells[y][x].possibilities = SudokuArray::new(false);
+                            data.cells[y][x].possibilities[n] = value_possible;
+                        }
+                    }
+                }
+
+                let mut row_solos = [SudokuArray::new(SoloState::None); SIZE2];
+                let mut col_solos = [SudokuArray::new(SoloState::None); SIZE2];
+                let mut square_solos = [[SudokuArray::new(SoloState::None); SIZE]; SIZE];
+
+                for y in 0..SIZE2 {
+                    for x in 0..SIZE2 {
+                        for (n, _) in data.cells[y][x].possibility_iter().filter(|&(_, p)| p) {
+                            row_solos[y][n].increment((y, x));
+                            col_solos[x][n].increment((y, x));
+                            square_solos[y / 3][x / 3][n].increment((y, x));
+                        }
+                    }
+                }
+
+                for group in row_solos
+                    .iter()
+                    .chain(col_solos.iter())
+                    .chain(square_solos.iter().flatten())
+                {
+                    for (n, &s) in group.iter().enumerate() {
+                        let n = n as Num + 1;
+                        if let SoloState::Solo((y, x)) = s {
+                            data.cells[y][x].solo.increment(n);
+                        }
+                        // TODO: Make something red on nones
                     }
                 }
             }
@@ -118,25 +148,5 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
 
             _ => child.event(ctx, event, data, env),
         }
-    }
-}
-
-// TODO: Remove Copy once we can drain an array
-#[derive(Copy, Clone, Data)]
-pub struct GeneratedCell {
-    possibilities: SudokuArray<bool>,
-}
-
-impl Default for GeneratedCell {
-    fn default() -> Self {
-        Self {
-            possibilities: SudokuArray::new(true),
-        }
-    }
-}
-
-impl GeneratedCell {
-    pub fn possibilities(&self) -> &SudokuArray<bool> {
-        &self.possibilities
     }
 }

@@ -1,4 +1,4 @@
-use crate::{consts::*, grid::GeneratedCell, sudoku_array::SudokuArray};
+use crate::{consts::*, solo_state::SoloState, sudoku_array::SudokuArray};
 use druid::{
     widget::{Container, Either, Flex, Label, Widget, WidgetExt, WidgetId},
     BoxConstraints, Color, Data, Env, Event, EventCtx, KbKey, KeyEvent, LayoutCtx, LifeCycle,
@@ -7,9 +7,10 @@ use druid::{
 
 #[derive(Clone, Data)]
 pub struct Cell {
-    value: Option<Num>,
+    pub value: Option<Num>,
     user_removed: SudokuArray<bool>,
-    generated: GeneratedCell,
+    pub possibilities: SudokuArray<bool>,
+    pub solo: SoloState<Num>,
 }
 
 impl Default for Cell {
@@ -17,29 +18,20 @@ impl Default for Cell {
         Self {
             value: None,
             user_removed: SudokuArray::new(false),
-            generated: Default::default(),
+            possibilities: SudokuArray::new(true),
+            solo: SoloState::None,
         }
     }
 }
 
 impl Cell {
-    pub fn value(&self) -> Option<Num> {
-        self.value
-    }
-
-    pub fn set_generated(&mut self, new_generated: GeneratedCell) {
-        self.generated = new_generated;
-    }
-
     pub fn one_possibility(&self) -> Option<Num> {
         let mut ret = None;
-        for (n, p) in self.possiblity_iter() {
-            if p {
-                if ret.is_none() {
-                    ret = Some(n)
-                } else {
-                    return None;
-                }
+        for (n, _) in self.possibility_iter().filter(|&(_, p)| p) {
+            if ret.is_none() {
+                ret = Some(n)
+            } else {
+                return None;
             }
         }
         ret
@@ -47,15 +39,16 @@ impl Cell {
 
     pub fn attempt_fill(&mut self) {
         if self.value.is_none() {
-            if let Some(n) = self.one_possibility() {
+            if let SoloState::Solo(n) = self.solo {
+                self.value = Some(n);
+            } else if let Some(n) = self.one_possibility() {
                 self.value = Some(n);
             }
         }
     }
 
-    fn possiblity_iter(&self) -> impl Iterator<Item = (Num, bool)> + '_ {
-        self.generated
-            .possibilities()
+    pub fn possibility_iter(&self) -> impl Iterator<Item = (Num, bool)> + '_ {
+        self.possibilities
             .iter()
             .copied()
             .zip(self.user_removed.iter().copied())
@@ -95,6 +88,7 @@ impl GridSpace {
     }
 
     // TODO mess with alignments for better look?
+    // TODO bold solos
     fn make_possibility_grid() -> impl Widget<Cell> {
         let mut column = Flex::column();
         for y in 0..SIZE {
@@ -103,7 +97,7 @@ impl GridSpace {
                 row.add_flex_child(
                     Label::dynamic(move |c: &Cell, _| {
                         let num = y * SIZE + x + 1;
-                        if !c.generated.possibilities()[num] {
+                        if !c.possibilities[num] {
                             String::new()
                         } else if c.user_removed[num] {
                             "█".to_string()
@@ -125,11 +119,14 @@ impl GridSpace {
     fn set_background_color(&mut self, data: &Cell, focused: bool) {
         let color = if focused {
             Color::rgb(0.6, 0.8, 1.0)
-        } else if (data.value.is_some() && !data.generated.possibilities()[data.value.unwrap()])
-            || data.possiblity_iter().all(|(_, p)| !p)
+        } else if (data.value.is_some() && !data.possibilities[data.value.unwrap()])
+            || matches!(data.solo, SoloState::Multiple)
+            || data.possibility_iter().all(|(_, p)| !p)
         {
             Color::rgb(1.0, 0.6, 0.6)
-        } else if data.value.is_none() && data.one_possibility().is_some() {
+        } else if data.value.is_none()
+            && (matches!(data.solo, SoloState::Solo(_)) || data.one_possibility().is_some())
+        {
             Color::rgb(0.7, 1.0, 0.7)
         } else {
             Color::WHITE
@@ -156,8 +153,9 @@ impl Widget<Cell> for GridSpace {
                     if let Some(num) = press {
                         if mods.ctrl() {
                             // TODO switch to shift?
-                            if data.value.is_none() && data.generated.possibilities()[num] {
+                            if data.value.is_none() && data.possibilities[num] {
                                 data.user_removed[num] = !data.user_removed[num];
+                                ctx.submit_command(REGENERATE_SELECTOR.to(self.root));
                             }
                         } else {
                             new_val = press;
@@ -184,30 +182,27 @@ impl Widget<Cell> for GridSpace {
         if new_val != data.value {
             data.value = new_val;
             ctx.submit_command(REGENERATE_SELECTOR.to(self.root));
-            ctx.request_paint();
         }
 
         self.display.event(ctx, event, data, env);
     }
 
     fn lifecycle(&mut self, ctx: &mut LifeCycleCtx, event: &LifeCycle, data: &Cell, env: &Env) {
-        self.display.lifecycle(ctx, event, &data, env);
-
         match event {
             LifeCycle::WidgetAdded => ctx.register_for_focus(),
 
             LifeCycle::FocusChanged(focused) => {
                 self.set_background_color(data, *focused);
-                ctx.request_paint();
             }
 
             _ => {}
         }
+
+        self.display.lifecycle(ctx, event, &data, env);
     }
 
     fn update(&mut self, ctx: &mut UpdateCtx, old_data: &Cell, data: &Cell, env: &Env) {
         self.set_background_color(data, ctx.has_focus());
-        ctx.request_paint();
         self.display.update(ctx, &old_data, &data, env);
     }
 
