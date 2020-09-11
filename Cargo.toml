@@ -5,7 +5,7 @@ authors = ["Steven Malis <smmalis37@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-druid = { git = "https://github.com/smmalis37/druid", rev = "5fa855b" }
+druid = { git = "https://github.com/linebender/druid", rev = "1513632c64f5a170f5217f457f3c931ca6ed01fb" }
 radix_fmt = "1.0"
 arraytools = "0.1.5"
 
