@@ -1,44 +1,66 @@
-use crate::{consts::*, index_minus_one::*};
-use druid::{widget::*, *};
+use crate::{consts::*, grid::GeneratedCell, sudoku_array::SudokuArray};
+use druid::{
+    widget::{Container, Either, Flex, Label, Widget, WidgetExt, WidgetId},
+    BoxConstraints, Color, Data, Env, Event, EventCtx, KbKey, KeyEvent, LayoutCtx, LifeCycle,
+    LifeCycleCtx, PaintCtx, Size, UpdateCtx,
+};
 
 #[derive(Clone, Data)]
 pub struct Cell {
-    pub value: Option<Num>,
-    pub possibilities: IndexMinusOne<bool>,
-    user_removed: IndexMinusOne<bool>,
+    value: Option<Num>,
+    user_removed: SudokuArray<bool>,
+    generated: GeneratedCell,
 }
 
 impl Default for Cell {
     fn default() -> Self {
         Self {
             value: None,
-            possibilities: IndexMinusOne::new(true),
-            user_removed: IndexMinusOne::new(false),
+            user_removed: SudokuArray::new(false),
+            generated: Default::default(),
         }
     }
 }
 
 impl Cell {
-    fn possiblity_iter(&self) -> impl Iterator<Item = (bool, bool)> + '_ {
-        self.possibilities
-            .iter()
-            .copied()
-            .zip(self.user_removed.iter().copied())
+    pub fn value(&self) -> Option<Num> {
+        self.value
     }
 
-    // TODO override enumerate to handle +1 ?
+    pub fn set_generated(&mut self, new_generated: GeneratedCell) {
+        self.generated = new_generated;
+    }
+
     pub fn one_possibility(&self) -> Option<Num> {
         let mut ret = None;
-        for (i, (p, ur)) in self.possiblity_iter().enumerate() {
-            if p && !ur {
+        for (n, p) in self.possiblity_iter() {
+            if p {
                 if ret.is_none() {
-                    ret = Some(i as Num + 1)
+                    ret = Some(n)
                 } else {
                     return None;
                 }
             }
         }
         ret
+    }
+
+    pub fn attempt_fill(&mut self) {
+        if self.value.is_none() {
+            if let Some(n) = self.one_possibility() {
+                self.value = Some(n);
+            }
+        }
+    }
+
+    fn possiblity_iter(&self) -> impl Iterator<Item = (Num, bool)> + '_ {
+        self.generated
+            .possibilities()
+            .iter()
+            .copied()
+            .zip(self.user_removed.iter().copied())
+            .enumerate()
+            .map(|(i, (p, ur))| (i as Num + 1, p && !ur))
     }
 }
 
@@ -81,7 +103,7 @@ impl GridSpace {
                 row.add_flex_child(
                     Label::dynamic(move |c: &Cell, _| {
                         let num = y * SIZE + x + 1;
-                        if !c.possibilities[num] {
+                        if !c.generated.possibilities()[num] {
                             String::new()
                         } else if c.user_removed[num] {
                             "█".to_string()
@@ -103,8 +125,8 @@ impl GridSpace {
     fn set_background_color(&mut self, data: &Cell, focused: bool) {
         let color = if focused {
             Color::rgb(0.6, 0.8, 1.0)
-        } else if (data.value.is_some() && !data.possibilities[data.value.unwrap()])
-            || data.possiblity_iter().all(|(p, ur)| !p || ur)
+        } else if (data.value.is_some() && !data.generated.possibilities()[data.value.unwrap()])
+            || data.possiblity_iter().all(|(_, p)| !p)
         {
             Color::rgb(1.0, 0.6, 0.6)
         } else if data.value.is_none() && data.one_possibility().is_some() {
@@ -134,7 +156,7 @@ impl Widget<Cell> for GridSpace {
                     if let Some(num) = press {
                         if mods.ctrl() {
                             // TODO switch to shift?
-                            if data.value.is_none() && data.possibilities[num] {
+                            if data.value.is_none() && data.generated.possibilities()[num] {
                                 data.user_removed[num] = !data.user_removed[num];
                             }
                         } else {
@@ -161,7 +183,7 @@ impl Widget<Cell> for GridSpace {
 
         if new_val != data.value {
             data.value = new_val;
-            ctx.submit_command(RECOMPUTE_SELECTOR.to(self.root));
+            ctx.submit_command(REGENERATE_SELECTOR.to(self.root));
             ctx.request_paint();
         }
 

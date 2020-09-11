@@ -1,6 +1,13 @@
-use crate::{consts::*, grid_space::*, index_minus_one::*};
+use crate::{
+    consts::*,
+    grid_space::{Cell, GridSpace},
+    sudoku_array::SudokuArray,
+};
 use arraytools::ArrayTools;
-use druid::{widget::*, *};
+use druid::{
+    widget::{Button, Controller, Flex, Widget, WidgetExt, WidgetId},
+    Data, Env, Event, EventCtx, Lens, LensExt,
+};
 
 #[derive(Clone, Default, Data, Lens)]
 pub struct State {
@@ -64,37 +71,37 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
         env: &Env,
     ) {
         match event {
-            Event::Command(c) if c.is(RECOMPUTE_SELECTOR) => {
-                println!("Recompute");
-                let mut new_possibilities = [[IndexMinusOne::new(true); SIZE2]; SIZE2];
+            Event::Command(c) if c.is(REGENERATE_SELECTOR) => {
+                println!("Regenerate");
+                let mut new_data = [[GeneratedCell::default(); SIZE2]; SIZE2];
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        if let Some(n) = data.cells[y][x].value {
-                            let value_possible = new_possibilities[y][x][n];
+                        if let Some(n) = data.cells[y][x].value() {
+                            let value_possible = new_data[y][x].possibilities[n];
 
                             for col in 0..SIZE2 {
-                                new_possibilities[col][x][n] = false;
+                                new_data[col][x].possibilities[n] = false;
                             }
                             for row in 0..SIZE2 {
-                                new_possibilities[y][row][n] = false;
+                                new_data[y][row].possibilities[n] = false;
                             }
                             let y_corner = (y / SIZE) * SIZE;
                             for square_y in y_corner..y_corner + SIZE {
                                 let x_corner = (x / SIZE) * SIZE;
                                 for square_x in x_corner..x_corner + SIZE {
-                                    new_possibilities[square_y][square_x][n] = false;
+                                    new_data[square_y][square_x].possibilities[n] = false;
                                 }
                             }
 
-                            new_possibilities[y][x][n] = value_possible;
+                            new_data[y][x].possibilities[n] = value_possible;
                         }
                     }
                 }
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        data.cells[y][x].possibilities = new_possibilities[y][x];
+                        data.cells[y][x].set_generated(new_data[y][x]);
                     }
                 }
             }
@@ -103,18 +110,33 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                 println!("Fill in");
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        let c = &mut data.cells[y][x];
-                        if c.value.is_none() {
-                            if let Some(n) = c.one_possibility() {
-                                c.value = Some(n);
-                            }
-                        }
+                        data.cells[y][x].attempt_fill();
                     }
                 }
-                ctx.submit_command(RECOMPUTE_SELECTOR.to(ctx.widget_id()));
+                ctx.submit_command(REGENERATE_SELECTOR.to(ctx.widget_id()));
             }
 
             _ => child.event(ctx, event, data, env),
         }
+    }
+}
+
+// TODO: Remove Copy once we can drain an array
+#[derive(Copy, Clone, Data)]
+pub struct GeneratedCell {
+    possibilities: SudokuArray<bool>,
+}
+
+impl Default for GeneratedCell {
+    fn default() -> Self {
+        Self {
+            possibilities: SudokuArray::new(true),
+        }
+    }
+}
+
+impl GeneratedCell {
+    pub fn possibilities(&self) -> &SudokuArray<bool> {
+        &self.possibilities
     }
 }
