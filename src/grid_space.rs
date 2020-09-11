@@ -193,6 +193,7 @@ impl Widget<Cell> for GridSpace {
 
             LifeCycle::FocusChanged(focused) => {
                 self.set_background_color(data, *focused);
+                ctx.request_paint();
             }
 
             _ => {}
