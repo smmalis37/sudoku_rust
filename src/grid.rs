@@ -49,12 +49,19 @@ pub fn make_grid() -> impl Widget<State> {
     }
 
     column.add_spacer(1.0);
-    let mut button_row = Flex::row();
-    button_row.add_child(
-        Button::new("Fill in")
-            .on_click(move |ctx, _g, _env| ctx.submit_command(FILL_IN_SELECTOR.to(root_id))),
+
+    column.add_child(
+        Flex::row()
+            .with_child(
+                Button::new("Clear")
+                    .on_click(move |ctx, _g, _env| ctx.submit_command(CLEAR_SELECTOR.to(root_id))),
+            )
+            .with_child(
+                Button::new("Fill in").on_click(move |ctx, _g, _env| {
+                    ctx.submit_command(FILL_IN_SELECTOR.to(root_id))
+                }),
+            ),
     );
-    column.add_child(button_row);
 
     column.controller(Grid).with_id(root_id)
 }
@@ -144,6 +151,15 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                     }
                 }
                 ctx.submit_command(REGENERATE_SELECTOR.to(ctx.widget_id()));
+            }
+
+            Event::Command(c) if c.is(CLEAR_SELECTOR) => {
+                println!("Clear");
+                for y in 0..SIZE2 {
+                    for x in 0..SIZE2 {
+                        data.cells[y][x] = Default::default();
+                    }
+                }
             }
 
             _ => child.event(ctx, event, data, env),
