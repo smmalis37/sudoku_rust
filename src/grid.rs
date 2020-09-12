@@ -114,9 +114,11 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                     }
                 }
 
-                let mut row_solos = [SudokuArray::new(SoloState::None); SIZE2];
-                let mut col_solos = [SudokuArray::new(SoloState::None); SIZE2];
-                let mut square_solos = [[SudokuArray::new(SoloState::None); SIZE]; SIZE];
+                let mut row_solos = <[_; SIZE2]>::generate(|| SudokuArray::new(SoloState::None));
+                let mut col_solos = <[_; SIZE2]>::generate(|| SudokuArray::new(SoloState::None));
+                let mut square_solos = <[_; SIZE]>::generate(|| {
+                    <[_; SIZE]>::generate(|| SudokuArray::new(SoloState::None))
+                });
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
