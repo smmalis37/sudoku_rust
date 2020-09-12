@@ -207,6 +207,7 @@ impl Widget<Cell> for GridSpace {
 
     fn update(&mut self, ctx: &mut UpdateCtx, old_data: &Cell, data: &Cell, env: &Env) {
         self.set_background_color(data, ctx.has_focus());
+        ctx.request_paint();
         self.display.update(ctx, &old_data, &data, env);
     }
 

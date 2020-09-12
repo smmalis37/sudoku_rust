@@ -16,4 +16,3 @@ piet-direct2d = { git = "https://github.com/smmalis37/piet.git", rev = "46aeef8e
 
 [profile.release]
 lto = true
-debug = true
