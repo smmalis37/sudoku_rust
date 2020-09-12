@@ -9,6 +9,10 @@ impl<T: Copy + Clone + Data> SudokuArray<T> {
     pub fn new(val: T) -> Self {
         Self([val; SIZE2])
     }
+
+    pub fn enumerate(&self) -> impl Iterator<Item = (Num, &T)> {
+        (1..).zip(self.0.iter())
+    }
 }
 
 impl<T: Clone + Data> Index<Num> for SudokuArray<T> {
@@ -36,14 +40,5 @@ impl<T: Clone + Data> IndexMut<Num> for SudokuArray<T> {
 impl<T: Clone + Data> IndexMut<usize> for SudokuArray<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index - 1]
-    }
-}
-
-// TODO remove to prevent misuses, like enumerate
-impl<T: Clone + Data> std::ops::Deref for SudokuArray<T> {
-    type Target = [T; SIZE2];
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }

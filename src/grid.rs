@@ -135,8 +135,7 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                     .chain(col_solos.iter())
                     .chain(square_solos.iter().flatten())
                 {
-                    for (n, &s) in group.iter().enumerate() {
-                        let n = n as Num + 1;
+                    for (n, &s) in group.enumerate() {
                         if let SoloState::Solo((y, x)) = s {
                             data.cells[y][x].solo.increment(n);
                         }

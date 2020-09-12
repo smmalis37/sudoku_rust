@@ -50,11 +50,9 @@ impl Cell {
 
     pub fn possibility_iter(&self) -> impl Iterator<Item = (Num, bool)> + '_ {
         self.possibilities
-            .iter()
-            .copied()
-            .zip(self.user_removed.iter().copied())
             .enumerate()
-            .map(|(i, (p, ur))| (i as Num + 1, p && !ur))
+            .zip(self.user_removed.enumerate())
+            .map(|((i, &p), (_i2, &ur))| (i, p && !ur))
     }
 }
 
