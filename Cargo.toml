@@ -9,6 +9,11 @@ druid = { git = "https://github.com/linebender/druid", rev = "1513632c64f5a170f5
 radix_fmt = "1.0"
 arraytools = "0.1.5"
 
+[patch.crates-io]
+piet = { git = "https://github.com/smmalis37/piet.git", rev = "46aeef8e47409e4cb3729bab8e2a4071eba48238" }
+piet-common = { git = "https://github.com/smmalis37/piet.git", rev = "46aeef8e47409e4cb3729bab8e2a4071eba48238" }
+piet-direct2d = { git = "https://github.com/smmalis37/piet.git", rev = "46aeef8e47409e4cb3729bab8e2a4071eba48238" }
+
 [profile.release]
 lto = true
 debug = true

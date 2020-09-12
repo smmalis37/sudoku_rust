@@ -19,6 +19,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
 
 [[package]]
+name = "associative-cache"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46016233fc1bb55c23b856fe556b7db6ccd05119a0a392e04f0b3b7c79058f16"
+
+[[package]]
 name = "atk"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -844,8 +850,7 @@ dependencies = [
 [[package]]
 name = "piet"
 version = "0.2.0-pre3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea034654cccde975d400a32ba8ddf0addebb4832a57180fa31e25ab593d38356"
+source = "git+https://github.com/smmalis37/piet.git?rev=46aeef8e47409e4cb3729bab8e2a4071eba48238#46aeef8e47409e4cb3729bab8e2a4071eba48238"
 dependencies = [
  "kurbo",
 ]
@@ -853,8 +858,7 @@ dependencies = [
 [[package]]
 name = "piet-cairo"
 version = "0.2.0-pre3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47b3fd836f83703eb29f0908905ae01f381098baff0bcf732a29a279c6c098be"
+source = "git+https://github.com/smmalis37/piet.git?rev=46aeef8e47409e4cb3729bab8e2a4071eba48238#46aeef8e47409e4cb3729bab8e2a4071eba48238"
 dependencies = [
  "cairo-rs",
  "piet",
@@ -865,8 +869,7 @@ dependencies = [
 [[package]]
 name = "piet-common"
 version = "0.2.0-pre3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36a565e3bcd6cc28148aee8f5e77efb539f09df04331ec216dc51bb21e9492dc"
+source = "git+https://github.com/smmalis37/piet.git?rev=46aeef8e47409e4cb3729bab8e2a4071eba48238#46aeef8e47409e4cb3729bab8e2a4071eba48238"
 dependencies = [
  "cairo-rs",
  "cairo-sys-rs",
@@ -884,8 +887,7 @@ dependencies = [
 [[package]]
 name = "piet-coregraphics"
 version = "0.2.0-pre3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c3633b507ed42dba2f41a50fc3d7fecc54be79bc06b4cf27fea17cc7d234e09"
+source = "git+https://github.com/smmalis37/piet.git?rev=46aeef8e47409e4cb3729bab8e2a4071eba48238#46aeef8e47409e4cb3729bab8e2a4071eba48238"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
@@ -899,9 +901,9 @@ dependencies = [
 [[package]]
 name = "piet-direct2d"
 version = "0.2.0-pre3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f341c6529c3c09182c160f300525ce5380d72f48672157719d6ef44029811df1"
+source = "git+https://github.com/smmalis37/piet.git?rev=46aeef8e47409e4cb3729bab8e2a4071eba48238#46aeef8e47409e4cb3729bab8e2a4071eba48238"
 dependencies = [
+ "associative-cache",
  "dwrote",
  "piet",
  "utf16_lit",
@@ -912,8 +914,7 @@ dependencies = [
 [[package]]
 name = "piet-web"
 version = "0.2.0-pre3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "050a649c9a046268573d6b4998da05e5114eccaf26bfade737a3e161eab60066"
+source = "git+https://github.com/smmalis37/piet.git?rev=46aeef8e47409e4cb3729bab8e2a4071eba48238#46aeef8e47409e4cb3729bab8e2a4071eba48238"
 dependencies = [
  "js-sys",
  "piet",
