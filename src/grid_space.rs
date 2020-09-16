@@ -3,7 +3,7 @@ use druid::{
     widget::LineBreaking,
     widget::{Container, Either, Flex, Label, Widget, WidgetExt, WidgetId},
     BoxConstraints, Color, Data, Env, Event, EventCtx, KbKey, KeyEvent, LayoutCtx, LifeCycle,
-    LifeCycleCtx, PaintCtx, Size, UpdateCtx,
+    LifeCycleCtx, LinearGradient, PaintCtx, Size, UnitPoint, UpdateCtx,
 };
 
 #[derive(Clone, Data)]
@@ -118,22 +118,34 @@ impl GridSpace {
     }
 
     fn set_background_color(&mut self, data: &Cell, focused: bool) {
-        let color = if focused {
-            Color::rgb(0.6, 0.8, 1.0)
-        } else if (data.value.is_some() && !data.possibilities[data.value.unwrap()])
-            || matches!(data.solo, SoloState::Multiple)
-            || data.possibility_iter().all(|(_, p)| !p)
-        {
-            Color::rgb(1.0, 0.6, 0.6)
-        } else if data.value.is_none()
-            && (matches!(data.solo, SoloState::Solo(_)) || data.one_possibility().is_some())
-        {
-            Color::rgb(0.7, 1.0, 0.7)
-        } else {
-            Color::WHITE
-        };
+        const BLUE: Color = Color::rgb8(153, 204, 255);
+        const GREEN: Color = Color::rgb8(178, 255, 178);
+        const RED: Color = Color::rgb8(255, 153, 153);
 
-        self.display.set_background(color);
+        let blue = focused;
+        let green = data.value.is_none()
+            && (matches!(data.solo, SoloState::Solo(_)) || data.one_possibility().is_some());
+        let red = (data.value.is_some() && !data.possibilities[data.value.unwrap()])
+            || matches!(data.solo, SoloState::Multiple)
+            || data.possibility_iter().all(|(_, p)| !p);
+
+        match (blue, green, red) {
+            (false, false, false) => self.display.set_background(Color::WHITE),
+            (true, false, false) => self.display.set_background(BLUE),
+            (false, true, false) => self.display.set_background(GREEN),
+            (false, false, true) => self.display.set_background(RED),
+            (true, true, false) => self.display.set_background(LinearGradient::new(
+                UnitPoint::TOP_LEFT,
+                UnitPoint::BOTTOM_RIGHT,
+                [BLUE, GREEN].as_ref(),
+            )),
+            (true, false, true) => self.display.set_background(LinearGradient::new(
+                UnitPoint::TOP_LEFT,
+                UnitPoint::BOTTOM_RIGHT,
+                [BLUE, RED].as_ref(),
+            )),
+            _ => unreachable!(),
+        }
     }
 }
 
