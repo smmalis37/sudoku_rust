@@ -1,6 +1,5 @@
 use crate::{consts::*, solo_state::SoloState, sudoku_array::SudokuArray};
 use druid::{
-    widget::LineBreaking,
     widget::{Container, Either, Flex, Label, Widget, WidgetExt, WidgetId},
     BoxConstraints, Color, Data, Env, Event, EventCtx, KbKey, KeyEvent, LayoutCtx, LifeCycle,
     LifeCycleCtx, LinearGradient, PaintCtx, Size, UnitPoint, UpdateCtx,
@@ -84,7 +83,6 @@ impl GridSpace {
         Label::dynamic(|c: &Cell, _| c.value.map(radix_string).unwrap_or_default())
             .with_text_size(48.0) // TODO: look into flexing text size
             .with_text_color(Color::BLACK)
-            .with_line_break_mode(LineBreaking::Overflow) // TODO remove once perf problem fixed?
     }
 
     // TODO mess with alignments for better look?
@@ -107,7 +105,6 @@ impl GridSpace {
                     })
                     .with_text_size(12.0) // TODO: look into flexing text size
                     .with_text_color(Color::grey(0.5))
-                    .with_line_break_mode(LineBreaking::Overflow) // TODO remove once perf problem fixed?
                     .center(),
                     1.0,
                 );
