@@ -37,13 +37,19 @@ impl Cell {
         ret
     }
 
-    pub fn attempt_fill(&mut self) {
+    pub fn attempt_fill(&mut self) -> bool {
         if self.value.is_none() {
             if let SoloState::Solo(n) = self.solo {
                 self.value = Some(n);
+                true
             } else if let Some(n) = self.one_possibility() {
                 self.value = Some(n);
+                true
+            } else {
+                false
             }
+        } else {
+            false
         }
     }
 

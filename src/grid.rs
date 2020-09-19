@@ -146,12 +146,17 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
 
             Event::Command(c) if c.is(FILL_IN_SELECTOR) => {
                 println!("Fill in");
+                let mut changed = false;
+
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        data.cells[y][x].attempt_fill();
+                        changed |= data.cells[y][x].attempt_fill();
                     }
                 }
-                ctx.submit_command(REGENERATE_SELECTOR.to(ctx.widget_id()));
+
+                if changed {
+                    ctx.submit_command(REGENERATE_SELECTOR.to(ctx.widget_id()));
+                }
             }
 
             Event::Command(c) if c.is(CLEAR_SELECTOR) => {
