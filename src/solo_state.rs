@@ -10,8 +10,8 @@ pub enum SoloState<T: PartialEq> {
 impl<T: PartialEq> SoloState<T> {
     pub fn increment(&mut self, val: T) {
         match self {
-            SoloState::None => *self = SoloState::Solo(val),
-            SoloState::Solo(x) if *x != val => *self = SoloState::Multiple,
+            Self::None => *self = Self::Solo(val),
+            Self::Solo(x) if *x != val => *self = Self::Multiple,
             _ => {}
         }
     }

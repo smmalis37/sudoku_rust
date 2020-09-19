@@ -162,7 +162,7 @@ impl Widget<Cell> for GridSpace {
                     let press = c
                         .chars()
                         .last()
-                        .and_then(|c| c.to_digit(BASE as u32))
+                        .and_then(|c| c.to_digit(BASE.into()))
                         .map(|n| n as Num)
                         .filter(|&n| n != 0);
 
@@ -215,21 +215,21 @@ impl Widget<Cell> for GridSpace {
             _ => {}
         }
 
-        self.display.lifecycle(ctx, event, &data, env);
+        self.display.lifecycle(ctx, event, data, env);
     }
 
     fn update(&mut self, ctx: &mut UpdateCtx, old_data: &Cell, data: &Cell, env: &Env) {
         self.set_background_color(data, ctx.has_focus());
         ctx.request_paint();
-        self.display.update(ctx, &old_data, &data, env);
+        self.display.update(ctx, old_data, data, env);
     }
 
     fn layout(&mut self, ctx: &mut LayoutCtx, bc: &BoxConstraints, data: &Cell, env: &Env) -> Size {
-        self.display.layout(ctx, bc, &data, env)
+        self.display.layout(ctx, bc, data, env)
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &Cell, env: &Env) {
-        self.display.paint(ctx, &data, env);
+        self.display.paint(ctx, data, env);
     }
 }
 
