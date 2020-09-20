@@ -7,8 +7,10 @@ use druid::{
 
 #[derive(Clone, Data)]
 pub struct Cell {
-    pub value: Option<Num>,
+    // User controlled data
+    value: Option<Num>,
     user_removed: SudokuArray<bool>,
+    // Generated data
     pub possibilities: SudokuArray<bool>,
     pub solo: SoloState<Num>,
 }
@@ -25,6 +27,10 @@ impl Default for Cell {
 }
 
 impl Cell {
+    pub fn value(&self) -> Option<Num> {
+        self.value
+    }
+
     pub fn one_possibility(&self) -> Option<Num> {
         let mut ret = None;
         for (n, _) in self.possibility_iter().filter(|&(_, p)| p) {

@@ -91,7 +91,7 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        if let Some(n) = data.cells[y][x].value {
+                        if let Some(n) = data.cells[y][x].value() {
                             let value_possible = data.cells[y][x].possibilities[n];
 
                             for col in 0..SIZE2 {
