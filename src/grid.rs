@@ -125,7 +125,7 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                         for (n, _) in data.cells[y][x].possibility_iter().filter(|&(_, p)| p) {
                             row_solos[y][n].increment((y, x));
                             col_solos[x][n].increment((y, x));
-                            square_solos[y / 3][x / 3][n].increment((y, x));
+                            square_solos[y / SIZE][x / SIZE][n].increment((y, x));
                         }
                     }
                 }
