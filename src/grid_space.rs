@@ -127,7 +127,7 @@ impl GridSpace {
     }
 
     fn set_background_color(&mut self, data: &Cell, focused: bool) {
-        const BLUE: Color = Color::rgb8(153, 204, 255);
+        const BLUE: Color = Color::rgb8(178, 217, 255);
         const GREEN: Color = Color::rgb8(178, 255, 178);
         const RED: Color = Color::rgb8(255, 153, 153);
 
