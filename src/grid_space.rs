@@ -153,7 +153,7 @@ impl GridSpace {
                 UnitPoint::BOTTOM_RIGHT,
                 [BLUE, RED].as_ref(),
             )),
-            _ => unreachable!(),
+            (_, true, true) => unreachable!(),
         }
     }
 }

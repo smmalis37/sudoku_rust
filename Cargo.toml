@@ -5,14 +5,9 @@ authors = ["Steven Malis <smmalis37@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-druid = { git = "https://github.com/linebender/druid", rev = "80f7518" }
+druid = "0.7"
 radix_fmt = "1.0"
 arraytools = "0.1.5"
-
-[patch.crates-io]
-piet = { git = "https://github.com/linebender/piet.git", rev = "054efaa" }
-piet-common = { git = "https://github.com/linebender/piet.git", rev = "054efaa" }
-piet-direct2d = { git = "https://github.com/linebender/piet.git", rev = "054efaa" }
 
 [profile.release]
 lto = true
