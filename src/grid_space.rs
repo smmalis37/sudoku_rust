@@ -85,16 +85,14 @@ impl Cell {
 }
 
 pub struct GridSpace {
-    root: WidgetId,
     up_target: WidgetId,
     down_target: WidgetId,
     display: Container<Cell>,
 }
 
 impl GridSpace {
-    pub fn new(root: WidgetId, up_target: WidgetId, down_target: WidgetId) -> Self {
+    pub fn new(up_target: WidgetId, down_target: WidgetId) -> Self {
         Self {
-            root,
             up_target,
             down_target,
             display: Either::new(
@@ -197,7 +195,7 @@ impl Widget<Cell> for GridSpace {
                             // TODO switch to shift?
                             if data.value.is_none() && data.g.possibilities[num] {
                                 data.user_removed[num] = !data.user_removed[num];
-                                ctx.submit_command(REGENERATE_SELECTOR.to(self.root));
+                                ctx.submit_notification(REGENERATE_SELECTOR);
                             }
                         } else {
                             new_val = press;
@@ -223,8 +221,7 @@ impl Widget<Cell> for GridSpace {
 
         if new_val != data.value {
             data.value = new_val;
-            // TODO: Change to a notification?
-            ctx.submit_command(REGENERATE_SELECTOR.to(self.root));
+            ctx.submit_notification(REGENERATE_SELECTOR);
         }
 
         self.display.event(ctx, event, data, env);
