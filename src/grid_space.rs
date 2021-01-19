@@ -1,6 +1,6 @@
 use crate::{consts::*, solo_state::SoloState, sudoku_array::SudokuArray};
 use druid::{
-    widget::{Container, Either, Flex, Label, Widget, WidgetExt, WidgetId},
+    widget::{BackgroundBrush, Container, Either, Flex, Label, Widget, WidgetExt, WidgetId},
     BoxConstraints, Color, Data, Env, Event, EventCtx, KbKey, KeyEvent, LayoutCtx, LifeCycle,
     LifeCycleCtx, LinearGradient, PaintCtx, Size, UnitPoint, UpdateCtx,
 };
@@ -44,31 +44,34 @@ impl Cell {
         self.value
     }
 
-    pub fn one_possibility(&self) -> Option<Num> {
-        let mut ret = None;
-        for (n, _) in self.possibility_iter().filter(|&(_, p)| p) {
-            if ret.is_none() {
-                ret = Some(n)
-            } else {
-                return None;
-            }
-        }
-        ret
-    }
-
     pub fn attempt_fill(&mut self) -> bool {
-        if self.value.is_none() {
-            if let SoloState::Solo(n) = self.g.solo {
-                self.value = Some(n);
-                true
-            } else if let Some(n) = self.one_possibility() {
-                self.value = Some(n);
-                true
-            } else {
-                false
-            }
+        if let Some(n) = self.infer_value() {
+            self.value = Some(n);
+            true
         } else {
             false
+        }
+    }
+
+    fn infer_value(&self) -> Option<Num> {
+        if self.value.is_none() {
+            if let SoloState::Solo(n) = self.g.solo {
+                return Some(n);
+            } else if let Some(n) = self.one_possibility() {
+                return Some(n);
+            }
+        }
+        None
+    }
+
+    fn one_possibility(&self) -> Option<Num> {
+        let mut possibilities = self.possibility_iter().filter(|&(_, p)| p);
+        let res = possibilities.next().map(|(n, _)| n);
+
+        if possibilities.next().is_some() {
+            None
+        } else {
+            res
         }
     }
 
@@ -77,7 +80,7 @@ impl Cell {
             .possibilities
             .enumerate()
             .zip(self.user_removed.enumerate())
-            .map(|((i, &p), (_i2, &ur))| (i, p && !ur))
+            .map(|((i, &p), (_i, &ur))| (i, p && !ur))
     }
 }
 
@@ -118,9 +121,9 @@ impl GridSpace {
         for y in 0..SIZE {
             let mut row = Flex::row();
             for x in 0..SIZE {
+                let num = y * SIZE + x + 1;
                 row.add_flex_child(
                     Label::dynamic(move |c: &Cell, _| {
-                        let num = y * SIZE + x + 1;
                         if !c.g.possibilities[num] {
                             String::new()
                         } else if c.user_removed[num] {
@@ -145,30 +148,33 @@ impl GridSpace {
         const GREEN: Color = Color::rgb8(178, 255, 178);
         const RED: Color = Color::rgb8(255, 153, 153);
 
+        // TODO constify gradients
+        let blue_green: LinearGradient = LinearGradient::new(
+            UnitPoint::TOP_LEFT,
+            UnitPoint::BOTTOM_RIGHT,
+            [BLUE, GREEN].as_ref(),
+        );
+        let blue_red: LinearGradient = LinearGradient::new(
+            UnitPoint::TOP_LEFT,
+            UnitPoint::BOTTOM_RIGHT,
+            [BLUE, RED].as_ref(),
+        );
+
         let blue = focused;
-        let green = data.value.is_none()
-            && (matches!(data.g.solo, SoloState::Solo(_)) || data.one_possibility().is_some());
+        let green = data.infer_value().is_some();
         let red = (data.value.is_some() && !data.g.possibilities[data.value.unwrap()])
             || matches!(data.g.solo, SoloState::Multiple)
             || data.possibility_iter().all(|(_, p)| !p);
 
-        match (blue, green, red) {
-            (false, false, false) => self.display.set_background(Color::WHITE),
-            (true, false, false) => self.display.set_background(BLUE),
-            (false, true, false) => self.display.set_background(GREEN),
-            (false, false, true) => self.display.set_background(RED),
-            (true, true, false) => self.display.set_background(LinearGradient::new(
-                UnitPoint::TOP_LEFT,
-                UnitPoint::BOTTOM_RIGHT,
-                [BLUE, GREEN].as_ref(),
-            )),
-            (true, false, true) => self.display.set_background(LinearGradient::new(
-                UnitPoint::TOP_LEFT,
-                UnitPoint::BOTTOM_RIGHT,
-                [BLUE, RED].as_ref(),
-            )),
+        self.display.set_background(match (blue, green, red) {
+            (false, false, false) => BackgroundBrush::from(Color::WHITE),
+            (true, false, false) => BLUE.into(),
+            (false, true, false) => GREEN.into(),
+            (false, false, true) => RED.into(),
+            (true, true, false) => blue_green.into(),
+            (true, false, true) => blue_red.into(),
             (_, true, true) => unreachable!(),
-        }
+        });
     }
 }
 
@@ -227,12 +233,10 @@ impl Widget<Cell> for GridSpace {
     fn lifecycle(&mut self, ctx: &mut LifeCycleCtx, event: &LifeCycle, data: &Cell, env: &Env) {
         match event {
             LifeCycle::WidgetAdded => ctx.register_for_focus(),
-
             LifeCycle::FocusChanged(focused) => {
                 self.set_background_color(data, *focused);
                 ctx.request_paint();
             }
-
             _ => {}
         }
 

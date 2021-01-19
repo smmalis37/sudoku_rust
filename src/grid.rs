@@ -100,8 +100,8 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                                 data.cells[y][row].g.possibilities[n] = false;
                             }
                             let y_corner = (y / SIZE) * SIZE;
+                            let x_corner = (x / SIZE) * SIZE;
                             for square_y in y_corner..y_corner + SIZE {
-                                let x_corner = (x / SIZE) * SIZE;
                                 for square_x in x_corner..x_corner + SIZE {
                                     data.cells[square_y][square_x].g.possibilities[n] = false;
                                 }
@@ -122,9 +122,10 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
                         for (n, _) in data.cells[y][x].possibility_iter().filter(|&(_, p)| p) {
-                            row_solos[y][n].increment((y, x));
-                            col_solos[x][n].increment((y, x));
-                            square_solos[y / SIZE][x / SIZE][n].increment((y, x));
+                            let pos = (y, x);
+                            row_solos[y][n].increment(pos);
+                            col_solos[x][n].increment(pos);
+                            square_solos[y / SIZE][x / SIZE][n].increment(pos);
                         }
                     }
                 }
