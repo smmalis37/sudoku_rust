@@ -11,6 +11,11 @@ pub struct Cell {
     value: Option<Num>,
     user_removed: SudokuArray<bool>,
     // Generated data
+    pub g: CellGeneratedData,
+}
+
+#[derive(Clone, Data)]
+pub struct CellGeneratedData {
     pub possibilities: SudokuArray<bool>,
     pub solo: SoloState<Num>,
 }
@@ -20,6 +25,14 @@ impl Default for Cell {
         Self {
             value: None,
             user_removed: SudokuArray::new(false),
+            g: Default::default(),
+        }
+    }
+}
+
+impl Default for CellGeneratedData {
+    fn default() -> Self {
+        Self {
             possibilities: SudokuArray::new(true),
             solo: SoloState::None,
         }
@@ -45,7 +58,7 @@ impl Cell {
 
     pub fn attempt_fill(&mut self) -> bool {
         if self.value.is_none() {
-            if let SoloState::Solo(n) = self.solo {
+            if let SoloState::Solo(n) = self.g.solo {
                 self.value = Some(n);
                 true
             } else if let Some(n) = self.one_possibility() {
@@ -60,7 +73,8 @@ impl Cell {
     }
 
     pub fn possibility_iter(&self) -> impl Iterator<Item = (Num, bool)> + '_ {
-        self.possibilities
+        self.g
+            .possibilities
             .enumerate()
             .zip(self.user_removed.enumerate())
             .map(|((i, &p), (_i2, &ur))| (i, p && !ur))
@@ -107,7 +121,7 @@ impl GridSpace {
                 row.add_flex_child(
                     Label::dynamic(move |c: &Cell, _| {
                         let num = y * SIZE + x + 1;
-                        if !c.possibilities[num] {
+                        if !c.g.possibilities[num] {
                             String::new()
                         } else if c.user_removed[num] {
                             "█".to_string()
@@ -133,9 +147,9 @@ impl GridSpace {
 
         let blue = focused;
         let green = data.value.is_none()
-            && (matches!(data.solo, SoloState::Solo(_)) || data.one_possibility().is_some());
-        let red = (data.value.is_some() && !data.possibilities[data.value.unwrap()])
-            || matches!(data.solo, SoloState::Multiple)
+            && (matches!(data.g.solo, SoloState::Solo(_)) || data.one_possibility().is_some());
+        let red = (data.value.is_some() && !data.g.possibilities[data.value.unwrap()])
+            || matches!(data.g.solo, SoloState::Multiple)
             || data.possibility_iter().all(|(_, p)| !p);
 
         match (blue, green, red) {
@@ -175,7 +189,7 @@ impl Widget<Cell> for GridSpace {
                     if let Some(num) = press {
                         if mods.ctrl() {
                             // TODO switch to shift?
-                            if data.value.is_none() && data.possibilities[num] {
+                            if data.value.is_none() && data.g.possibilities[num] {
                                 data.user_removed[num] = !data.user_removed[num];
                                 ctx.submit_command(REGENERATE_SELECTOR.to(self.root));
                             }
@@ -203,6 +217,7 @@ impl Widget<Cell> for GridSpace {
 
         if new_val != data.value {
             data.value = new_val;
+            // TODO: Change to a notification?
             ctx.submit_command(REGENERATE_SELECTOR.to(self.root));
         }
 

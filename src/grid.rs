@@ -84,32 +84,31 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
-                        data.cells[y][x].possibilities = SudokuArray::new(true);
-                        data.cells[y][x].solo = SoloState::None;
+                        data.cells[y][x].g = Default::default();
                     }
                 }
 
                 for y in 0..SIZE2 {
                     for x in 0..SIZE2 {
                         if let Some(n) = data.cells[y][x].value() {
-                            let value_possible = data.cells[y][x].possibilities[n];
+                            let value_possible = data.cells[y][x].g.possibilities[n];
 
                             for col in 0..SIZE2 {
-                                data.cells[col][x].possibilities[n] = false;
+                                data.cells[col][x].g.possibilities[n] = false;
                             }
                             for row in 0..SIZE2 {
-                                data.cells[y][row].possibilities[n] = false;
+                                data.cells[y][row].g.possibilities[n] = false;
                             }
                             let y_corner = (y / SIZE) * SIZE;
                             for square_y in y_corner..y_corner + SIZE {
                                 let x_corner = (x / SIZE) * SIZE;
                                 for square_x in x_corner..x_corner + SIZE {
-                                    data.cells[square_y][square_x].possibilities[n] = false;
+                                    data.cells[square_y][square_x].g.possibilities[n] = false;
                                 }
                             }
 
-                            data.cells[y][x].possibilities = SudokuArray::new(false);
-                            data.cells[y][x].possibilities[n] = value_possible;
+                            data.cells[y][x].g.possibilities = SudokuArray::new(false);
+                            data.cells[y][x].g.possibilities[n] = value_possible;
                         }
                     }
                 }
@@ -137,7 +136,7 @@ impl<W: Widget<State>> Controller<State, W> for Grid {
                 {
                     for (n, &s) in group.enumerate() {
                         if let SoloState::Solo((y, x)) = s {
-                            data.cells[y][x].solo.increment(n);
+                            data.cells[y][x].g.solo.increment(n);
                         }
                         // TODO: Make something red on nones
                     }
