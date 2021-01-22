@@ -5,6 +5,7 @@ use crate::{
     sudoku_array::SudokuArray,
 };
 use arraytools::ArrayTools;
+use arrayvec::ArrayVec;
 use druid::{
     widget::{Button, Controller, Flex, Widget, WidgetExt, WidgetId},
     Data, Env, Event, EventCtx, Lens, LensExt,
@@ -102,32 +103,48 @@ impl Grid {
             }
         }
 
-        let mut row_solos = <[_; SIZE2]>::generate(|| SudokuArray::new(SoloState::None));
-        let mut col_solos = <[_; SIZE2]>::generate(|| SudokuArray::new(SoloState::None));
-        let mut square_solos =
-            <[_; SIZE]>::generate(|| <[_; SIZE]>::generate(|| SudokuArray::new(SoloState::None)));
+        let mut square_solos = <[_; SIZE]>::generate(|| {
+            <[_; SIZE]>::generate(|| {
+                (
+                    SudokuArray::new(SoloState::None),
+                    ArrayVec::<[(usize, usize); SIZE2]>::new(),
+                )
+            })
+        });
+        let mut row_solos =
+            <[_; SIZE2]>::generate(|| (SudokuArray::new(SoloState::None), ArrayVec::new()));
+        let mut col_solos = row_solos.clone();
 
         for y in 0..SIZE2 {
             for x in 0..SIZE2 {
+                //TODO: don't compute group cells every time, they don't change
+                let pos = (y, x);
+                row_solos[y].1.push(pos);
+                col_solos[x].1.push(pos);
+                square_solos[y / SIZE][x / SIZE].1.push(pos);
                 for (n, _) in data.cells[y][x].possibility_iter().filter(|&(_, p)| p) {
-                    let pos = (y, x);
-                    row_solos[y][n].increment(pos);
-                    col_solos[x][n].increment(pos);
-                    square_solos[y / SIZE][x / SIZE][n].increment(pos);
+                    row_solos[y].0[n].increment(pos);
+                    col_solos[x].0[n].increment(pos);
+                    square_solos[y / SIZE][x / SIZE].0[n].increment(pos);
                 }
             }
         }
 
-        for group in row_solos
+        for (group, cells) in row_solos
             .iter()
             .chain(col_solos.iter())
             .chain(square_solos.iter().flatten())
         {
             for (n, &s) in group.enumerate() {
-                if let SoloState::Solo((y, x)) = s {
-                    data.cells[y][x].g.solo.increment(n);
+                match s {
+                    SoloState::Solo((y, x)) => data.cells[y][x].g.solo.increment(n),
+                    SoloState::None => {
+                        for &(y, x) in cells {
+                            data.cells[y][x].g.in_invalid_group = true;
+                        }
+                    }
+                    SoloState::Multiple => {}
                 }
-                // TODO: Make something red on nones
             }
         }
     }

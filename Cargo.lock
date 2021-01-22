@@ -1232,6 +1232,7 @@ name = "sudoku"
 version = "0.1.0"
 dependencies = [
  "arraytools",
+ "arrayvec",
  "druid",
  "radix_fmt",
 ]

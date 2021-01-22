@@ -8,6 +8,7 @@ edition = "2018"
 druid = "0.7"
 radix_fmt = "1.0"
 arraytools = "0.1.5"
+arrayvec = "0.5"
 
 [profile.release]
 lto = true

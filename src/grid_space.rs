@@ -18,6 +18,7 @@ pub struct Cell {
 pub struct CellGeneratedData {
     pub possibilities: SudokuArray<bool>,
     pub solo: SoloState<Num>,
+    pub in_invalid_group: bool,
 }
 
 impl Default for Cell {
@@ -35,6 +36,7 @@ impl Default for CellGeneratedData {
         Self {
             possibilities: SudokuArray::new(true),
             solo: SoloState::None,
+            in_invalid_group: false,
         }
     }
 }
@@ -162,16 +164,16 @@ impl GridSpace {
         let green = data.infer_value().is_some();
         let red = (data.value.is_some() && !data.g.possibilities[data.value.unwrap()])
             || matches!(data.g.solo, SoloState::Multiple)
-            || data.possibility_iter().all(|(_, p)| !p);
+            || data.possibility_iter().all(|(_, p)| !p)
+            || data.g.in_invalid_group;
 
         self.display.set_background(match (blue, green, red) {
             (false, false, false) => BackgroundBrush::from(Color::WHITE),
             (true, false, false) => BLUE.into(),
             (false, true, false) => GREEN.into(),
-            (false, false, true) => RED.into(),
+            (false, _, true) => RED.into(),
             (true, true, false) => blue_green.into(),
-            (true, false, true) => blue_red.into(),
-            (_, true, true) => unreachable!(),
+            (true, _, true) => blue_red.into(),
         });
     }
 }
