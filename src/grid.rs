@@ -70,7 +70,8 @@ struct Grid;
 impl Grid {
     #[allow(clippy::needless_range_loop)]
     fn regenerate(&mut self, data: &mut State) {
-        println!("Regenerate");
+        let start = std::time::Instant::now();
+        print!("Regenerate ");
 
         for y in 0..SIZE2 {
             for x in 0..SIZE2 {
@@ -152,6 +153,9 @@ impl Grid {
                 }
             }
         }
+
+        let end = std::time::Instant::now();
+        println!("{:?}", end - start);
     }
 }
 
