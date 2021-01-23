@@ -139,9 +139,13 @@ impl Grid {
                 match s {
                     SoloState::Solo((y, x)) => data.cells[y][x].g.solo.increment(n),
                     SoloState::None => {
-                        for &(y, x) in cells {
-                            //TODO: Only mark the group that matters
-                            data.cells[y][x].g.in_invalid_group = true;
+                        if !cells
+                            .iter()
+                            .any(|&(y, x)| data.cells[y][x].value() == Some(n))
+                        {
+                            for &(y, x) in cells {
+                                data.cells[y][x].g.in_invalid_group = true;
+                            }
                         }
                     }
                     SoloState::Multiple => {}
