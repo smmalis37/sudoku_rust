@@ -114,7 +114,6 @@ impl GridSpace {
             .with_text_color(Color::BLACK)
     }
 
-    // TODO mess with alignments for better look?
     // TODO bold solos
     fn make_possibility_grid() -> impl Widget<Cell> {
         let mut column = Flex::column();
@@ -167,14 +166,16 @@ impl GridSpace {
             || data.possibility_iter().all(|(_, p)| !p)
             || data.g.in_invalid_group;
 
-        self.display.set_background(match (blue, green, red) {
-            (false, false, false) => BackgroundBrush::from(Color::WHITE),
+        let brush: BackgroundBrush<_> = match (blue, green, red) {
+            (false, false, false) => Color::WHITE.into(),
             (true, false, false) => BLUE.into(),
             (false, true, false) => GREEN.into(),
             (false, _, true) => RED.into(),
             (true, true, false) => blue_green.into(),
             (true, _, true) => blue_red.into(),
-        });
+        };
+
+        self.display.set_background(brush);
     }
 }
 
