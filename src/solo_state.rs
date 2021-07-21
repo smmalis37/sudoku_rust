@@ -1,6 +1,4 @@
-use druid::Data;
-
-#[derive(Copy, Clone, Data)]
+#[derive(Copy, Clone)]
 pub enum SoloState<T: PartialEq> {
     None,
     Solo(T),

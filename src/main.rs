@@ -1,20 +1,23 @@
+mod cell;
 mod consts;
-mod grid;
-mod grid_space;
 mod solo_state;
+mod sudoku;
 mod sudoku_array;
 
-use consts::SIZE2;
-use grid::make_grid;
+pub use cell::Cell;
+pub use consts::*;
+pub use solo_state::SoloState;
+pub use sudoku::Sudoku;
+pub use sudoku_array::SudokuArray;
 
-use druid::{AppLauncher, PlatformError, WindowDesc};
-
-fn main() -> Result<(), PlatformError> {
-    AppLauncher::with_window(
-        WindowDesc::new(make_grid)
-            .title("Sudoku")
-            .resizable(false)
-            .window_size((SIZE2 as f64 * 80.0, SIZE2 as f64 * 80.0)),
-    )
-    .launch(Default::default())
+fn main() -> iced::Result {
+    let window_size = (SIZE2 * 80) as u32;
+    <Sudoku as iced::Application>::run(iced::Settings {
+        window: iced::window::Settings {
+            size: (window_size, window_size),
+            resizable: false,
+            ..Default::default()
+        },
+        ..Default::default()
+    })
 }

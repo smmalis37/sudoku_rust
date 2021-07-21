@@ -1,11 +1,9 @@
 use crate::consts::*;
-use druid::Data;
 use std::ops::{Index, IndexMut};
 
-#[derive(Clone, Data)]
 pub struct SudokuArray<T>([T; SIZE2]);
 
-impl<T: Copy + Clone + Data> SudokuArray<T> {
+impl<T: Copy> SudokuArray<T> {
     pub fn new(val: T) -> Self {
         Self([val; SIZE2])
     }
