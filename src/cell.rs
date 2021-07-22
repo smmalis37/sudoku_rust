@@ -3,7 +3,7 @@ use iced_native::*;
 
 pub(crate) trait Renderer:
     iced_native::Renderer
-    + container::Renderer
+    + container::Renderer<Style: From<Theme>>
     + text::Renderer
     + row::Renderer
     + column::Renderer
@@ -13,7 +13,7 @@ pub(crate) trait Renderer:
 
 impl<R> Renderer for R where
     R: iced_native::Renderer
-        + container::Renderer
+        + container::Renderer<Style: From<Theme>>
         + text::Renderer
         + row::Renderer
         + column::Renderer
@@ -121,7 +121,7 @@ where
             None => self.make_possibility_grid().into(),
         };
 
-        Container::new(content).center_x().center_y() //.style(Theme)
+        Container::new(content).center_x().center_y().style(Theme)
     }
 
     fn make_value_text(&self) -> Text<R> {
@@ -169,7 +169,7 @@ where
     }
 }
 
-struct Theme;
+pub(crate) struct Theme;
 
 impl iced::container::StyleSheet for Theme {
     fn style(&self) -> iced::container::Style {

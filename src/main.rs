@@ -1,3 +1,5 @@
+#![feature(associated_type_bounds)]
+
 mod cell;
 mod consts;
 mod solo_state;
