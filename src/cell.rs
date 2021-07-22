@@ -2,22 +2,12 @@ use crate::*;
 use iced_native::*;
 
 pub(crate) trait Renderer:
-    iced_native::Renderer
-    + container::Renderer<Style: From<Theme>>
-    + text::Renderer
-    + row::Renderer
-    + column::Renderer
-    + space::Renderer
+    container::Renderer<Style: From<Theme>> + text::Renderer + row::Renderer + column::Renderer
 {
 }
 
 impl<R> Renderer for R where
-    R: iced_native::Renderer
-        + container::Renderer<Style: From<Theme>>
-        + text::Renderer
-        + row::Renderer
-        + column::Renderer
-        + space::Renderer
+    R: container::Renderer<Style: From<Theme>> + text::Renderer + row::Renderer + column::Renderer
 {
 }
 
@@ -61,15 +51,15 @@ impl<'a, R: Renderer> From<Cell<'a, R>> for Element<'a, M, R> {
 
 impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
     fn width(&self) -> Length {
-        Widget::width(self.contents.as_ref().unwrap())
+        Widget::width(self.contents())
     }
 
     fn height(&self) -> Length {
-        Widget::height(self.contents.as_ref().unwrap())
+        Widget::height(self.contents())
     }
 
     fn layout(&self, renderer: &R, limits: &layout::Limits) -> layout::Node {
-        Widget::layout(self.contents.as_ref().unwrap(), renderer, limits)
+        Widget::layout(self.contents(), renderer, limits)
     }
 
     fn draw(
@@ -81,7 +71,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
         viewport: &Rectangle,
     ) -> R::Output {
         Widget::draw(
-            self.contents.as_ref().unwrap(),
+            self.contents(),
             renderer,
             defaults,
             layout,
@@ -91,7 +81,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
-        Widget::hash_layout(self.contents.as_ref().unwrap(), state)
+        Widget::hash_layout(self.contents(), state)
     }
 }
 
@@ -148,6 +138,10 @@ impl<'a, R: Renderer> Cell<'a, R> {
         self.contents = Some(self.contents.take().unwrap().width(width));
         self
     }
+
+    fn contents(&self) -> &Container<'a, M, R> {
+        self.contents.as_ref().unwrap()
+    }
 }
 
 pub(crate) struct Theme;
@@ -156,7 +150,7 @@ impl iced::container::StyleSheet for Theme {
     fn style(&self) -> iced::container::Style {
         iced::container::Style {
             border_width: 1.0,
-            border_color: [0.75, 0.75, 0.75].into(),
+            border_color: Color::from_rgb(0.75, 0.75, 0.75),
             background: Some(Background::Color(Color::WHITE)),
             ..Default::default()
         }
