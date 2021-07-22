@@ -1,45 +1,137 @@
 use crate::*;
-use iced::*;
+use iced_native::*;
 
-pub struct Cell {
+pub(crate) trait Renderer:
+    iced_native::Renderer
+    + container::Renderer
+    + text::Renderer
+    + row::Renderer
+    + column::Renderer
+    + space::Renderer
+{
+}
+
+impl<R> Renderer for R where
+    R: iced_native::Renderer
+        + container::Renderer
+        + text::Renderer
+        + row::Renderer
+        + column::Renderer
+        + space::Renderer
+{
+}
+
+type M = <Sudoku as iced::Application>::Message;
+
+pub(crate) struct Cell<'a, R>
+where
+    R: Renderer + 'a,
+{
     // User controlled data
     value: Option<Num>,
     user_removed: SudokuArray<bool>,
 
     // Generated data
     possibilities: SudokuArray<bool>,
-    //solo: SoloState<Num>,
-    //in_invalid_group: bool,
+    _solo: SoloState<Num>,
+    _in_invalid_group: bool,
+
+    // UI
+    contents: Option<Container<'a, M, R>>,
 }
 
-impl Default for Cell {
+impl<'a, R> Default for Cell<'a, R>
+where
+    R: Renderer + 'a,
+{
     fn default() -> Self {
-        Self {
+        let mut s = Self {
             value: None,
             user_removed: SudokuArray::new(false),
             possibilities: SudokuArray::new(true),
-        }
+            contents: None,
+            _solo: SoloState::None,
+            _in_invalid_group: false,
+        };
+
+        s.contents = Some(s.view());
+        s
     }
 }
 
-impl Cell {
-    pub fn view(&self) -> Container<'_, <Sudoku as Application>::Message> {
-        let content: iced::Element<'_, _> = match self.value {
+impl<'a, R> From<Cell<'a, R>> for Element<'a, M, R>
+where
+    R: Renderer,
+{
+    fn from(cell: Cell<'a, R>) -> Element<'a, M, R> {
+        Element::new(cell)
+    }
+}
+
+impl<'a, R> Widget<M, R> for Cell<'a, R>
+where
+    R: Renderer + 'a,
+{
+    fn width(&self) -> Length {
+        Widget::<M, R>::width(self.contents.as_ref().unwrap())
+    }
+
+    fn height(&self) -> Length {
+        Widget::<M, R>::height(self.contents.as_ref().unwrap())
+    }
+
+    fn layout(
+        &self,
+        renderer: &R,
+        limits: &iced_native::layout::Limits,
+    ) -> iced_native::layout::Node {
+        Widget::<M, R>::layout(self.contents.as_ref().unwrap(), renderer, limits)
+    }
+
+    fn draw(
+        &self,
+        renderer: &mut R,
+        defaults: &R::Defaults,
+        layout: iced_native::Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+    ) -> R::Output {
+        Widget::<M, R>::draw(
+            self.contents.as_ref().unwrap(),
+            renderer,
+            defaults,
+            layout,
+            cursor_position,
+            viewport,
+        )
+    }
+
+    fn hash_layout(&self, state: &mut iced_native::Hasher) {
+        Widget::<M, R>::hash_layout(self.contents.as_ref().unwrap(), state)
+    }
+}
+
+impl<'a, R> Cell<'a, R>
+where
+    R: Renderer + 'a,
+{
+    fn view(&self) -> Container<'a, M, R> {
+        let content: Element<'a, M, R> = match self.value {
             Some(_) => self.make_value_text().into(),
             None => self.make_possibility_grid().into(),
         };
 
-        Container::new(content).center_x().center_y().style(Theme)
+        Container::new(content).center_x().center_y() //.style(Theme)
     }
 
-    fn make_value_text(&self) -> Text {
+    fn make_value_text(&self) -> Text<R> {
         Text::new(self.value.unwrap().to_string())
             .size(48)
             .horizontal_alignment(HorizontalAlignment::Center)
             .vertical_alignment(VerticalAlignment::Center)
     }
 
-    fn make_possibility_grid(&self) -> Column<'_, <Sudoku as Application>::Message> {
+    fn make_possibility_grid(&self) -> Column<'a, M, R> {
         let mut column = Column::new().align_items(Align::Center);
 
         for y in 0..SIZE {
@@ -70,13 +162,18 @@ impl Cell {
 
         column
     }
+
+    pub(crate) fn width(mut self, width: Length) -> Self {
+        self.contents = Some(self.contents.take().unwrap().width(width));
+        self
+    }
 }
 
 struct Theme;
 
-impl container::StyleSheet for Theme {
-    fn style(&self) -> container::Style {
-        container::Style {
+impl iced::container::StyleSheet for Theme {
+    fn style(&self) -> iced::container::Style {
+        iced::container::Style {
             border_width: 1.0,
             border_color: [0.75, 0.75, 0.75].into(),
             background: Some(Background::Color(Color::WHITE)),

@@ -4,11 +4,11 @@ mod solo_state;
 mod sudoku;
 mod sudoku_array;
 
-pub use cell::Cell;
-pub use consts::*;
-pub use solo_state::SoloState;
-pub use sudoku::Sudoku;
-pub use sudoku_array::SudokuArray;
+pub(crate) use cell::Cell;
+pub(crate) use consts::*;
+pub(crate) use solo_state::SoloState;
+pub(crate) use sudoku::Sudoku;
+pub(crate) use sudoku_array::SudokuArray;
 
 fn main() -> iced::Result {
     let window_size = (SIZE2 * 80) as u32;

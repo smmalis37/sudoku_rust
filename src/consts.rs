@@ -1,5 +1,5 @@
-pub type Num = u8;
+pub(crate) type Num = u8;
 
-pub const SIZE: usize = 3;
-pub const SIZE2: usize = SIZE * SIZE;
-pub const BASE: u8 = SIZE2 as u8 + 1;
+pub(crate) const SIZE: usize = 3;
+pub(crate) const SIZE2: usize = SIZE * SIZE;
+pub(crate) const BASE: u8 = SIZE2 as u8 + 1;

@@ -1,16 +1,16 @@
 use crate::consts::*;
 use std::ops::{Index, IndexMut};
 
-pub struct SudokuArray<T>([T; SIZE2]);
+pub(crate) struct SudokuArray<T>([T; SIZE2]);
 
 impl<T: Copy> SudokuArray<T> {
-    pub fn new(val: T) -> Self {
+    pub(crate) fn new(val: T) -> Self {
         Self([val; SIZE2])
     }
 }
 
 impl<T> SudokuArray<T> {
-    pub fn enumerate(&self) -> impl Iterator<Item = (Num, &T)> {
+    pub(crate) fn enumerate(&self) -> impl Iterator<Item = (Num, &T)> {
         (1..).zip(self.0.iter())
     }
 }
