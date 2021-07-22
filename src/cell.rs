@@ -23,10 +23,7 @@ impl<R> Renderer for R where
 
 type M = <Sudoku as iced::Application>::Message;
 
-pub(crate) struct Cell<'a, R>
-where
-    R: Renderer + 'a,
-{
+pub(crate) struct Cell<'a, R: Renderer + 'a> {
     // User controlled data
     value: Option<Num>,
     user_removed: SudokuArray<bool>,
@@ -40,10 +37,7 @@ where
     contents: Option<Container<'a, M, R>>,
 }
 
-impl<'a, R> Default for Cell<'a, R>
-where
-    R: Renderer + 'a,
-{
+impl<'a, R: Renderer> Default for Cell<'a, R> {
     fn default() -> Self {
         let mut s = Self {
             value: None,
@@ -59,44 +53,34 @@ where
     }
 }
 
-impl<'a, R> From<Cell<'a, R>> for Element<'a, M, R>
-where
-    R: Renderer,
-{
+impl<'a, R: Renderer> From<Cell<'a, R>> for Element<'a, M, R> {
     fn from(cell: Cell<'a, R>) -> Element<'a, M, R> {
         Element::new(cell)
     }
 }
 
-impl<'a, R> Widget<M, R> for Cell<'a, R>
-where
-    R: Renderer + 'a,
-{
+impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
     fn width(&self) -> Length {
-        Widget::<M, R>::width(self.contents.as_ref().unwrap())
+        Widget::width(self.contents.as_ref().unwrap())
     }
 
     fn height(&self) -> Length {
-        Widget::<M, R>::height(self.contents.as_ref().unwrap())
+        Widget::height(self.contents.as_ref().unwrap())
     }
 
-    fn layout(
-        &self,
-        renderer: &R,
-        limits: &iced_native::layout::Limits,
-    ) -> iced_native::layout::Node {
-        Widget::<M, R>::layout(self.contents.as_ref().unwrap(), renderer, limits)
+    fn layout(&self, renderer: &R, limits: &layout::Limits) -> layout::Node {
+        Widget::layout(self.contents.as_ref().unwrap(), renderer, limits)
     }
 
     fn draw(
         &self,
         renderer: &mut R,
         defaults: &R::Defaults,
-        layout: iced_native::Layout<'_>,
+        layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
     ) -> R::Output {
-        Widget::<M, R>::draw(
+        Widget::draw(
             self.contents.as_ref().unwrap(),
             renderer,
             defaults,
@@ -106,15 +90,12 @@ where
         )
     }
 
-    fn hash_layout(&self, state: &mut iced_native::Hasher) {
-        Widget::<M, R>::hash_layout(self.contents.as_ref().unwrap(), state)
+    fn hash_layout(&self, state: &mut Hasher) {
+        Widget::hash_layout(self.contents.as_ref().unwrap(), state)
     }
 }
 
-impl<'a, R> Cell<'a, R>
-where
-    R: Renderer + 'a,
-{
+impl<'a, R: Renderer> Cell<'a, R> {
     fn view(&self) -> Container<'a, M, R> {
         let content: Element<'a, M, R> = match self.value {
             Some(_) => self.make_value_text().into(),
