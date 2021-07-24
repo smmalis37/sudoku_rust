@@ -2,20 +2,18 @@
 
 mod cell;
 mod consts;
+mod prelude;
 mod solo_state;
 mod sudoku;
 mod sudoku_array;
 
-pub(crate) use cell::Cell;
-pub(crate) use consts::*;
-pub(crate) use solo_state::SoloState;
-pub(crate) use sudoku::Sudoku;
-pub(crate) use sudoku_array::SudokuArray;
+use crate::prelude::*;
+use iced::*;
 
-fn main() -> iced::Result {
+fn main() -> Result {
     let window_size = (SIZE2 * 80) as u32;
-    <Sudoku as iced::Application>::run(iced::Settings {
-        window: iced::window::Settings {
+    <Sudoku as Application>::run(Settings {
+        window: window::Settings {
             size: (window_size, window_size),
             resizable: false,
             ..Default::default()

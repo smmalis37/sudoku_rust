@@ -1,13 +1,13 @@
-use crate::*;
-use iced_native::*;
+use crate::prelude::*;
+use iced::*;
 
 #[derive(Default)]
-pub(crate) struct Sudoku {
+pub struct Sudoku {
     _clear: button::State,
     _fill: button::State,
 }
 
-impl iced::Sandbox for Sudoku {
+impl Sandbox for Sudoku {
     type Message = ();
 
     fn new() -> Self {
@@ -22,7 +22,7 @@ impl iced::Sandbox for Sudoku {
         Color::BLACK
     }
 
-    fn view(&mut self) -> iced::Element<'_, Self::Message> {
+    fn view(&mut self) -> Element<'_, M> {
         let mut column = Column::new();
 
         for y in 0..SIZE2 {
@@ -44,5 +44,5 @@ impl iced::Sandbox for Sudoku {
         column.into()
     }
 
-    fn update(&mut self, _message: Self::Message) {}
+    fn update(&mut self, _message: M) {}
 }

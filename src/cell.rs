@@ -1,4 +1,4 @@
-use crate::*;
+use crate::prelude::*;
 use iced_native::*;
 
 pub(crate) trait Renderer:
@@ -10,8 +10,6 @@ impl<R> Renderer for R where
     R: container::Renderer<Style: From<Theme>> + text::Renderer + row::Renderer + column::Renderer
 {
 }
-
-type M = <Sudoku as iced::Application>::Message;
 
 pub(crate) struct Cell<'a, R: Renderer + 'a> {
     // User controlled data
