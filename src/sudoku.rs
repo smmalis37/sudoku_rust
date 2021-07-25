@@ -1,10 +1,12 @@
+use crate::cell::*;
 use crate::prelude::*;
 use iced::*;
 
 #[derive(Default)]
 pub struct Sudoku {
-    _clear: button::State,
-    _fill: button::State,
+    states: [[State; SIZE2]; SIZE2],
+    clear: button::State,
+    fill: button::State,
 }
 
 impl Sandbox for Sudoku {
@@ -22,22 +24,24 @@ impl Sandbox for Sudoku {
         Color::BLACK
     }
 
-    fn view(&mut self) -> Element<'_, M> {
+    fn view(&mut self) -> Element<M> {
         let mut column = Column::new();
 
-        for y in 0..SIZE2 {
+        for (y, states) in self.states.iter_mut().enumerate() {
             let mut row = Row::new().height(Length::FillPortion(50));
 
-            for x in 0..SIZE2 {
+            for (x, state) in states.iter_mut().enumerate() {
                 if x % SIZE == 0 && x != 0 {
                     row = row.push(Space::with_width(Length::FillPortion(1)));
                 }
-                row = row.push(Cell::default().width(Length::FillPortion(50)));
+
+                row = row.push(Cell::new(state, Default::default(), Length::FillPortion(50)));
             }
 
             if y % SIZE == 0 && y != 0 {
                 column = column.push(Space::with_height(Length::FillPortion(1)));
             }
+
             column = column.push(row);
         }
 
