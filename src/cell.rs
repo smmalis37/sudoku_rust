@@ -4,7 +4,7 @@ use iced_native::{
     *,
 };
 
-pub trait Renderer:
+pub(crate) trait Renderer:
     container::Renderer<Style: From<Theme>> + text::Renderer + row::Renderer + column::Renderer
 {
 }
@@ -14,19 +14,19 @@ impl<R> Renderer for R where
 {
 }
 
-pub struct Cell<'a, R: Renderer + 'a> {
+pub(crate) struct Cell<'a, R: Renderer + 'a> {
     s: &'a mut State,
     g: Generated,
     contents: Container<'a, M, R>,
 }
 
-pub struct State {
+pub(crate) struct State {
     value: Option<Num>,
     user_removed: SudokuArray<bool>,
     is_focused: bool,
 }
 
-pub struct Generated {
+pub(crate) struct Generated {
     possibilities: SudokuArray<bool>,
     solo: SoloState<Num>,
     in_invalid_group: bool,
@@ -53,7 +53,7 @@ impl Default for Generated {
 }
 
 impl<'a, R: Renderer + 'a> Cell<'a, R> {
-    pub fn new(s: &'a mut State, g: Generated, l: Length) -> Self {
+    pub(crate) fn new(s: &'a mut State, g: Generated, l: Length) -> Self {
         Self {
             contents: Self::view(s, &g).width(l).height(l),
             s,
@@ -139,7 +139,7 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
         }
     }
 
-    pub fn attempt_fill(&mut self) -> bool {
+    pub(crate) fn attempt_fill(&mut self) -> bool {
         if let Some(n) = Self::infer_value(self.s, &self.g) {
             self.s.value = Some(n);
             true
@@ -274,7 +274,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
     }
 }
 
-pub struct Theme(Color);
+pub(crate) struct Theme(Color);
 
 impl iced::container::StyleSheet for Theme {
     fn style(&self) -> iced::container::Style {

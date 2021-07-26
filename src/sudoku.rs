@@ -3,7 +3,7 @@ use crate::prelude::*;
 use iced::*;
 
 #[derive(Default)]
-pub struct Sudoku {
+pub(crate) struct Sudoku {
     states: [[State; SIZE2]; SIZE2],
     clear: button::State,
     fill: button::State,
@@ -35,7 +35,11 @@ impl Sandbox for Sudoku {
                     row = row.push(Space::with_width(Length::FillPortion(1)));
                 }
 
-                row = row.push(Cell::new(state, Default::default(), Length::FillPortion(50)));
+                row = row.push(Cell::new(
+                    state,
+                    Default::default(),
+                    Length::FillPortion(50),
+                ));
             }
 
             if y % SIZE == 0 && y != 0 {
