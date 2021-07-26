@@ -172,7 +172,7 @@ impl State {
         }
     }
 
-    pub fn possibility_iter(&self) -> impl Iterator<Item = Num> + '_ {
+    pub(crate) fn possibility_iter(&self) -> impl Iterator<Item = Num> + '_ {
         self.g
             .possibilities
             .enumerate()
@@ -190,7 +190,7 @@ impl State {
         false
     }
 
-    pub fn value(&self) -> Option<Num> {
+    pub(crate) const fn value(&self) -> Option<Num> {
         self.value
     }
 }
@@ -221,7 +221,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
-        self.contents.hash_layout(state)
+        self.contents.hash_layout(state);
     }
 
     fn on_event(
@@ -260,7 +260,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
 
                 if self.s.value != new_value {
                     self.s.value = new_value;
-                    messages.push(Regen)
+                    messages.push(Regen);
                 }
 
                 event::Status::Captured
