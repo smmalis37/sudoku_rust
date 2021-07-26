@@ -8,6 +8,8 @@ edition = "2018"
 iced = "0.3"
 iced_native = "*"
 radix_fmt = "1.0"
+arraytools = "0.1.5"
+arrayvec = "0.7"
 
 [profile.release]
 lto = true

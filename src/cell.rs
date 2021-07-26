@@ -23,13 +23,13 @@ pub(crate) struct State {
     value: Option<Num>,
     user_removed: SudokuArray<bool>,
     is_focused: bool,
-    g: Generated,
+    pub g: Generated,
 }
 
 pub(crate) struct Generated {
-    possibilities: SudokuArray<bool>,
-    solo: SoloState<Num>,
-    in_invalid_group: bool,
+    pub possibilities: SudokuArray<bool>,
+    pub solo: SoloState<Num>,
+    pub in_invalid_group: bool,
 }
 
 impl Default for State {
@@ -125,10 +125,10 @@ impl State {
 
         let red = (self.value.is_some() && !self.g.possibilities[self.value.unwrap()])
             || matches!(self.g.solo, SoloState::Multiple)
-            || Self::possibility_iter(self).next().is_none()
+            || self.possibility_iter().next().is_none()
             || self.g.in_invalid_group;
 
-        let green = Self::infer_value(self).is_some();
+        let green = self.infer_value().is_some();
         let blue = self.is_focused;
 
         match (blue, green, red) {
@@ -142,7 +142,7 @@ impl State {
     }
 
     pub(crate) fn attempt_fill(&mut self) -> bool {
-        if let Some(n) = Self::infer_value(self) {
+        if let Some(n) = self.infer_value() {
             self.value = Some(n);
             true
         } else {
@@ -150,19 +150,19 @@ impl State {
         }
     }
 
-    fn infer_value(s: &State) -> Option<Num> {
-        if s.value.is_none() {
-            if let SoloState::Solo(n) = s.g.solo {
+    fn infer_value(&self) -> Option<Num> {
+        if self.value.is_none() {
+            if let SoloState::Solo(n) = self.g.solo {
                 return Some(n);
-            } else if let Some(n) = Self::one_possibility(s) {
+            } else if let Some(n) = self.one_possibility() {
                 return Some(n);
             }
         }
         None
     }
 
-    fn one_possibility(s: &State) -> Option<Num> {
-        let mut possibilities = Self::possibility_iter(s);
+    fn one_possibility(&self) -> Option<Num> {
+        let mut possibilities = self.possibility_iter();
         let res = possibilities.next();
 
         if possibilities.next().is_some() {
@@ -172,10 +172,11 @@ impl State {
         }
     }
 
-    fn possibility_iter(s: &State) -> impl Iterator<Item = Num> + '_ {
-        s.g.possibilities
+    pub fn possibility_iter(&self) -> impl Iterator<Item = Num> + '_ {
+        self.g
+            .possibilities
             .enumerate()
-            .zip(s.user_removed.enumerate())
+            .zip(self.user_removed.enumerate())
             .filter_map(|((i, &p), (_i, &ur))| (p && !ur).then(|| i))
     }
 
@@ -187,6 +188,10 @@ impl State {
             }
         }
         false
+    }
+
+    pub fn value(&self) -> Option<Num> {
+        self.value
     }
 }
 
@@ -228,6 +233,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
         _: &mut dyn Clipboard,
         messages: &mut Vec<M>,
     ) -> event::Status {
+        // TODO add arrow key support
         if let Event::Keyboard(e) = event {
             if self.s.is_focused {
                 let new_value = match e {

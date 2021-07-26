@@ -1,10 +1,12 @@
 use crate::cell::*;
 use crate::prelude::*;
+use arraytools::ArrayTools;
+use arrayvec::ArrayVec;
 use iced::*;
 
 #[derive(Default)]
 pub(crate) struct Sudoku {
-    states: [[State; SIZE2]; SIZE2],
+    cells: [[State; SIZE2]; SIZE2],
     clear: button::State,
     fill: button::State,
 }
@@ -35,7 +37,7 @@ impl Sandbox for Sudoku {
     fn view(&mut self) -> Element<M> {
         let mut column = Column::new();
 
-        for (y, states) in self.states.iter_mut().enumerate() {
+        for (y, states) in self.cells.iter_mut().enumerate() {
             let mut row = Row::new().height(Length::FillPortion(50));
 
             for (x, state) in states.iter_mut().enumerate() {
@@ -84,11 +86,11 @@ impl Sandbox for Sudoku {
 
     fn update(&mut self, message: M) {
         match message {
-            Regen => {}
+            Regen => self.regen(),
 
             Fill => {
                 let mut changed = false;
-                for s in self.states.iter_mut().flatten() {
+                for s in self.cells.iter_mut().flatten() {
                     changed |= s.attempt_fill();
                 }
                 if changed {
@@ -97,12 +99,104 @@ impl Sandbox for Sudoku {
             }
 
             Clear => {
-                for s in self.states.iter_mut().flatten() {
+                for s in self.cells.iter_mut().flatten() {
                     *s = Default::default();
                 }
             }
 
             Redraw => {}
         }
+    }
+}
+
+impl Sudoku {
+    #[allow(clippy::needless_range_loop)]
+    fn regen(&mut self) {
+        let start = std::time::Instant::now();
+        print!("Regenerate ");
+
+        for y in 0..SIZE2 {
+            for x in 0..SIZE2 {
+                self.cells[y][x].g = Default::default();
+            }
+        }
+
+        for y in 0..SIZE2 {
+            for x in 0..SIZE2 {
+                if let Some(n) = self.cells[y][x].value() {
+                    let value_possible = self.cells[y][x].g.possibilities[n];
+
+                    for col in 0..SIZE2 {
+                        self.cells[col][x].g.possibilities[n] = false;
+                    }
+                    for row in 0..SIZE2 {
+                        self.cells[y][row].g.possibilities[n] = false;
+                    }
+                    let y_corner = (y / SIZE) * SIZE;
+                    let x_corner = (x / SIZE) * SIZE;
+                    for square_y in y_corner..y_corner + SIZE {
+                        for square_x in x_corner..x_corner + SIZE {
+                            self.cells[square_y][square_x].g.possibilities[n] = false;
+                        }
+                    }
+
+                    self.cells[y][x].g.possibilities = SudokuArray::new(false);
+                    self.cells[y][x].g.possibilities[n] = value_possible;
+                }
+            }
+        }
+
+        let mut square_solos = <[_; SIZE]>::generate(|| {
+            <[_; SIZE]>::generate(|| {
+                (
+                    SudokuArray::new(SoloState::None),
+                    ArrayVec::<(usize, usize), SIZE2>::new(),
+                )
+            })
+        });
+        let mut row_solos =
+            <[_; SIZE2]>::generate(|| (SudokuArray::new(SoloState::None), ArrayVec::new()));
+        let mut col_solos = row_solos.clone();
+
+        for y in 0..SIZE2 {
+            for x in 0..SIZE2 {
+                //TODO: don't compute group cells every time, they don't change
+                let pos = (y, x);
+                row_solos[y].1.push(pos);
+                col_solos[x].1.push(pos);
+                square_solos[y / SIZE][x / SIZE].1.push(pos);
+                for n in self.cells[y][x].possibility_iter() {
+                    row_solos[y].0[n].increment(pos);
+                    col_solos[x].0[n].increment(pos);
+                    square_solos[y / SIZE][x / SIZE].0[n].increment(pos);
+                }
+            }
+        }
+
+        for (group, cells) in row_solos
+            .iter()
+            .chain(col_solos.iter())
+            .chain(square_solos.iter().flatten())
+        {
+            for (n, &s) in group.enumerate() {
+                match s {
+                    SoloState::Solo((y, x)) => self.cells[y][x].g.solo.increment(n),
+                    SoloState::None => {
+                        if !cells
+                            .iter()
+                            .any(|&(y, x)| self.cells[y][x].value() == Some(n))
+                        {
+                            for &(y, x) in cells {
+                                self.cells[y][x].g.in_invalid_group = true;
+                            }
+                        }
+                    }
+                    SoloState::Multiple => {}
+                }
+            }
+        }
+
+        let end = std::time::Instant::now();
+        println!("{:?}", end - start);
     }
 }

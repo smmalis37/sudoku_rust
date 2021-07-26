@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use std::ops::{Index, IndexMut};
 
+#[derive(Clone)]
 pub(crate) struct SudokuArray<T>([T; SIZE2]);
 
 impl<T: Copy> SudokuArray<T> {
