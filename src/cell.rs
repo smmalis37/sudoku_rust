@@ -1,5 +1,8 @@
 use crate::prelude::*;
-use iced_native::*;
+use iced_native::{
+    keyboard::{KeyCode, Modifiers},
+    *,
+};
 
 pub trait Renderer:
     container::Renderer<Style: From<Theme>> + text::Renderer + row::Renderer + column::Renderer
@@ -20,7 +23,7 @@ pub struct Cell<'a, R: Renderer + 'a> {
 pub struct State {
     value: Option<Num>,
     user_removed: SudokuArray<bool>,
-    pub is_focused: bool,
+    is_focused: bool,
 }
 
 pub struct Generated {
@@ -114,6 +117,9 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
         const RED: Color = Color::from_rgb(1.0, 0.6, 0.6);
         const GREEN: Color = Color::from_rgb(0.7, 1.0, 0.7);
         const BLUE: Color = Color::from_rgb(0.7, 0.85, 1.0);
+        // TODO gradients
+        const BLUEGREEN: Color = Color::from_rgb(0.7, 0.925, 0.85);
+        const BLUERED: Color = Color::from_rgb(0.85, 0.725, 0.8);
 
         let red = (s.value.is_some() && !g.possibilities[s.value.unwrap()])
             || matches!(g.solo, SoloState::Multiple)
@@ -128,8 +134,8 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
             (true, false, false) => BLUE,
             (false, true, false) => GREEN,
             (false, _, true) => RED,
-            (true, true, false) => BLUE, // TODO BlueGreen
-            (true, _, true) => BLUE,     // TODO BlueRed
+            (true, true, false) => BLUEGREEN,
+            (true, _, true) => BLUERED,
         }
     }
 
@@ -169,6 +175,16 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
             .enumerate()
             .zip(s.user_removed.enumerate())
             .filter_map(|((i, &p), (_i, &ur))| (p && !ur).then(|| i))
+    }
+
+    fn handle_possibility(&mut self, c: KeyCode) -> bool {
+        if let Some(n) = to_digit(c) {
+            if self.s.value.is_none() && self.g.possibilities[n] {
+                self.s.user_removed[n] = !self.s.user_removed[n];
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -210,16 +226,50 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
         _: &mut dyn Clipboard,
         messages: &mut Vec<M>,
     ) -> event::Status {
-        match event {
-            //Event::Keyboard(_) => todo!(),
-            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
-                self.s.is_focused = layout.bounds().contains(cursor);
-                if self.s.is_focused {
-                    messages.push(());
+        if let Event::Keyboard(e) = event {
+            if self.s.is_focused {
+                let new_value = match e {
+                    keyboard::Event::KeyPressed {
+                        key_code: KeyCode::Backspace | KeyCode::Delete,
+                        ..
+                    } => None,
+
+                    keyboard::Event::KeyPressed {
+                        key_code,
+                        modifiers: Modifiers { control: false, .. },
+                    } if to_digit(key_code).is_some() => to_digit(key_code),
+
+                    keyboard::Event::KeyPressed {
+                        key_code,
+                        modifiers: Modifiers { control: true, .. },
+                    } if self.handle_possibility(key_code) => {
+                        messages.push(());
+                        self.s.value
+                    }
+
+                    _ => self.s.value,
+                };
+
+                if self.s.value != new_value {
+                    self.s.value = new_value;
+                    messages.push(())
                 }
+
                 event::Status::Captured
+            } else {
+                event::Status::Ignored
             }
-            _ => event::Status::Ignored,
+        } else {
+            match event {
+                Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
+                    self.s.is_focused = layout.bounds().contains(cursor);
+                    if self.s.is_focused {
+                        messages.push(());
+                    }
+                    event::Status::Captured
+                }
+                _ => event::Status::Ignored,
+            }
         }
     }
 }
@@ -240,6 +290,22 @@ impl iced::container::StyleSheet for Theme {
 impl<'a, R: Renderer> From<Cell<'a, R>> for Element<'a, M, R> {
     fn from(cell: Cell<'a, R>) -> Element<'a, M, R> {
         Element::new(cell)
+    }
+}
+
+// TODO support arbitrary bases
+const fn to_digit(k: KeyCode) -> Option<Num> {
+    match k {
+        KeyCode::Key1 | KeyCode::Numpad1 => Some(1),
+        KeyCode::Key2 | KeyCode::Numpad2 => Some(2),
+        KeyCode::Key3 | KeyCode::Numpad3 => Some(3),
+        KeyCode::Key4 | KeyCode::Numpad4 => Some(4),
+        KeyCode::Key5 | KeyCode::Numpad5 => Some(5),
+        KeyCode::Key6 | KeyCode::Numpad6 => Some(6),
+        KeyCode::Key7 | KeyCode::Numpad7 => Some(7),
+        KeyCode::Key8 | KeyCode::Numpad8 => Some(8),
+        KeyCode::Key9 | KeyCode::Numpad9 => Some(9),
+        _ => None,
     }
 }
 
