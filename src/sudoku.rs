@@ -9,8 +9,16 @@ pub(crate) struct Sudoku {
     fill: button::State,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub(crate) enum Message {
+    Regen,
+    Fill,
+    Clear,
+    Redraw,
+}
+
 impl Sandbox for Sudoku {
-    type Message = ();
+    type Message = Message;
 
     fn new() -> Self {
         Default::default()
@@ -49,8 +57,41 @@ impl Sandbox for Sudoku {
             column = column.push(row);
         }
 
+        let button_row = Row::new()
+            .height(Length::FillPortion(30))
+            .width(Length::Fill);
+
+        let clear_button = Button::new(
+            &mut self.clear,
+            Text::new("Clear")
+                .horizontal_alignment(HorizontalAlignment::Center)
+                .vertical_alignment(VerticalAlignment::Center)
+                .width(Length::Fill),
+        )
+        .width(Length::Fill)
+        .on_press(Clear);
+
+        let fill_button = Button::new(
+            &mut self.fill,
+            Text::new("Fill")
+                .horizontal_alignment(HorizontalAlignment::Center)
+                .vertical_alignment(VerticalAlignment::Center)
+                .width(Length::Fill),
+        )
+        .width(Length::Fill)
+        .on_press(Fill);
+
+        column = column.push(button_row.push(clear_button).push(fill_button));
+
         column.into()
     }
 
-    fn update(&mut self, _message: M) {}
+    fn update(&mut self, message: M) {
+        match message {
+            Regen => todo!(),
+            Fill => todo!(),
+            Clear => todo!(),
+            Redraw => {}
+        }
+    }
 }

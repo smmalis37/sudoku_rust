@@ -243,7 +243,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
                         key_code,
                         modifiers: Modifiers { control: true, .. },
                     } if self.handle_possibility(key_code) => {
-                        messages.push(());
+                        messages.push(Regen);
                         self.s.value
                     }
 
@@ -252,7 +252,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
 
                 if self.s.value != new_value {
                     self.s.value = new_value;
-                    messages.push(())
+                    messages.push(Regen)
                 }
 
                 event::Status::Captured
@@ -264,7 +264,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
                 Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
                     self.s.is_focused = layout.bounds().contains(cursor);
                     if self.s.is_focused {
-                        messages.push(());
+                        messages.push(Redraw);
                     }
                     event::Status::Captured
                 }
