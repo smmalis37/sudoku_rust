@@ -43,11 +43,7 @@ impl Sandbox for Sudoku {
                     row = row.push(Space::with_width(Length::FillPortion(1)));
                 }
 
-                row = row.push(Cell::new(
-                    state,
-                    Default::default(),
-                    Length::FillPortion(50),
-                ));
+                row = row.push(Cell::new(state, Length::FillPortion(50)));
             }
 
             if y % SIZE == 0 && y != 0 {

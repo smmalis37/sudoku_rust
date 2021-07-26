@@ -15,15 +15,15 @@ impl<R> Renderer for R where
 }
 
 pub(crate) struct Cell<'a, R: Renderer + 'a> {
-    s: &'a mut State,
-    g: Generated,
     contents: Container<'a, M, R>,
+    s: &'a mut State,
 }
 
 pub(crate) struct State {
     value: Option<Num>,
     user_removed: SudokuArray<bool>,
     is_focused: bool,
+    g: Generated,
 }
 
 pub(crate) struct Generated {
@@ -38,6 +38,7 @@ impl Default for State {
             value: None,
             user_removed: SudokuArray::new(false),
             is_focused: false,
+            g: Default::default(),
         }
     }
 }
@@ -53,24 +54,23 @@ impl Default for Generated {
 }
 
 impl<'a, R: Renderer + 'a> Cell<'a, R> {
-    pub(crate) fn new(s: &'a mut State, g: Generated, l: Length) -> Self {
+    pub(crate) fn new(s: &'a mut State, l: Length) -> Self {
         Self {
-            contents: Self::view(s, &g).width(l).height(l),
+            contents: Self::view(s).width(l).height(l),
             s,
-            g,
         }
     }
 
-    fn view(s: &State, g: &Generated) -> Container<'a, M, R> {
+    fn view(s: &State) -> Container<'a, M, R> {
         let content: Element<'a, M, R> = match s.value {
             Some(n) => Self::make_value_text(n).into(),
-            None => Self::make_possibility_grid(s, g).into(),
+            None => Self::make_possibility_grid(s).into(),
         };
 
         Container::new(content)
             .center_x()
             .center_y()
-            .style(Theme(Self::bg_color(s, g)))
+            .style(Theme(s.bg_color()))
     }
 
     fn make_value_text(n: Num) -> Text<R> {
@@ -81,7 +81,7 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
     }
 
     // TODO bold solos
-    fn make_possibility_grid(s: &State, g: &Generated) -> Column<'a, M, R> {
+    fn make_possibility_grid(s: &State) -> Column<'a, M, R> {
         let mut column = Column::new().align_items(Align::Center);
 
         for y in 0..SIZE {
@@ -89,7 +89,7 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
 
             for x in 0..SIZE {
                 let num = y * SIZE + x + 1;
-                let text = if !g.possibilities[num] {
+                let text = if !s.g.possibilities[num] {
                     String::new()
                 } else if s.user_removed[num] {
                     "█".to_string()
@@ -112,8 +112,10 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
 
         column
     }
+}
 
-    fn bg_color(s: &State, g: &Generated) -> Color {
+impl State {
+    fn bg_color(&self) -> Color {
         const RED: Color = Color::from_rgb(1.0, 0.6, 0.6);
         const GREEN: Color = Color::from_rgb(0.7, 1.0, 0.7);
         const BLUE: Color = Color::from_rgb(0.7, 0.85, 1.0);
@@ -121,13 +123,13 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
         const BLUEGREEN: Color = Color::from_rgb(0.7, 0.925, 0.85);
         const BLUERED: Color = Color::from_rgb(0.85, 0.725, 0.8);
 
-        let red = (s.value.is_some() && !g.possibilities[s.value.unwrap()])
-            || matches!(g.solo, SoloState::Multiple)
-            || Self::possibility_iter(s, g).next().is_none()
-            || g.in_invalid_group;
+        let red = (self.value.is_some() && !self.g.possibilities[self.value.unwrap()])
+            || matches!(self.g.solo, SoloState::Multiple)
+            || Self::possibility_iter(self).next().is_none()
+            || self.g.in_invalid_group;
 
-        let green = Self::infer_value(s, g).is_some();
-        let blue = s.is_focused;
+        let green = Self::infer_value(self).is_some();
+        let blue = self.is_focused;
 
         match (blue, green, red) {
             (false, false, false) => Color::WHITE,
@@ -140,27 +142,27 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
     }
 
     pub(crate) fn attempt_fill(&mut self) -> bool {
-        if let Some(n) = Self::infer_value(self.s, &self.g) {
-            self.s.value = Some(n);
+        if let Some(n) = Self::infer_value(self) {
+            self.value = Some(n);
             true
         } else {
             false
         }
     }
 
-    fn infer_value(s: &State, g: &Generated) -> Option<Num> {
+    fn infer_value(s: &State) -> Option<Num> {
         if s.value.is_none() {
-            if let SoloState::Solo(n) = g.solo {
+            if let SoloState::Solo(n) = s.g.solo {
                 return Some(n);
-            } else if let Some(n) = Self::one_possibility(s, g) {
+            } else if let Some(n) = Self::one_possibility(s) {
                 return Some(n);
             }
         }
         None
     }
 
-    fn one_possibility(s: &State, g: &Generated) -> Option<Num> {
-        let mut possibilities = Self::possibility_iter(s, g);
+    fn one_possibility(s: &State) -> Option<Num> {
+        let mut possibilities = Self::possibility_iter(s);
         let res = possibilities.next();
 
         if possibilities.next().is_some() {
@@ -170,8 +172,8 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
         }
     }
 
-    fn possibility_iter<'b>(s: &'b State, g: &'b Generated) -> impl Iterator<Item = Num> + 'b {
-        g.possibilities
+    fn possibility_iter(s: &State) -> impl Iterator<Item = Num> + '_ {
+        s.g.possibilities
             .enumerate()
             .zip(s.user_removed.enumerate())
             .filter_map(|((i, &p), (_i, &ur))| (p && !ur).then(|| i))
@@ -179,8 +181,8 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
 
     fn handle_possibility(&mut self, c: KeyCode) -> bool {
         if let Some(n) = to_digit(c) {
-            if self.s.value.is_none() && self.g.possibilities[n] {
-                self.s.user_removed[n] = !self.s.user_removed[n];
+            if self.value.is_none() && self.g.possibilities[n] {
+                self.user_removed[n] = !self.user_removed[n];
                 return true;
             }
         }
@@ -242,7 +244,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
                     keyboard::Event::KeyPressed {
                         key_code,
                         modifiers: Modifiers { control: true, .. },
-                    } if self.handle_possibility(key_code) => {
+                    } if self.s.handle_possibility(key_code) => {
                         messages.push(Regen);
                         self.s.value
                     }
