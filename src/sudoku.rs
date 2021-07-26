@@ -84,9 +84,24 @@ impl Sandbox for Sudoku {
 
     fn update(&mut self, message: M) {
         match message {
-            Regen => todo!(),
-            Fill => todo!(),
-            Clear => todo!(),
+            Regen => {}
+
+            Fill => {
+                let mut changed = false;
+                for s in self.states.iter_mut().flatten() {
+                    changed |= s.attempt_fill();
+                }
+                if changed {
+                    Sandbox::update(self, Regen);
+                }
+            }
+
+            Clear => {
+                for s in self.states.iter_mut().flatten() {
+                    *s = Default::default();
+                }
+            }
+
             Redraw => {}
         }
     }
