@@ -7,8 +7,8 @@ edition = "2018"
 [dependencies]
 druid = "0.7"
 radix_fmt = "1.0"
-arraytools = "0.1.5"
-arrayvec = "0.5"
+arraytools = "0.1"
+arrayvec = "0.7"
 
 [profile.release]
 lto = true

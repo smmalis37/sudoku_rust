@@ -108,7 +108,7 @@ impl Grid {
             <[_; SIZE]>::generate(|| {
                 (
                     SudokuArray::new(SoloState::None),
-                    ArrayVec::<[(usize, usize); SIZE2]>::new(),
+                    ArrayVec::<(usize, usize), SIZE2>::new(),
                 )
             })
         });
