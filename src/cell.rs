@@ -267,17 +267,15 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
             } else {
                 event::Status::Ignored
             }
-        } else {
-            match event {
-                Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
-                    self.s.is_focused = layout.bounds().contains(cursor);
-                    if self.s.is_focused {
-                        messages.push(Redraw);
-                    }
-                    event::Status::Captured
-                }
-                _ => event::Status::Ignored,
+        } else if let Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) = event {
+            let new_focus = layout.bounds().contains(cursor);
+            if new_focus != self.s.is_focused {
+                self.s.is_focused = new_focus;
+                messages.push(Redraw);
             }
+            event::Status::Captured
+        } else {
+            event::Status::Ignored
         }
     }
 }
