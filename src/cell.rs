@@ -1,18 +1,5 @@
 use crate::prelude::*;
-use iced_native::{
-    keyboard::{KeyCode, Modifiers},
-    *,
-};
-
-pub(crate) trait Renderer:
-    container::Renderer<Style: From<Theme>> + text::Renderer + row::Renderer + column::Renderer
-{
-}
-
-impl<R> Renderer for R where
-    R: container::Renderer<Style: From<Theme>> + text::Renderer + row::Renderer + column::Renderer
-{
-}
+use iced_native::{alignment::*, keyboard::KeyCode, renderer::Style, text::Renderer, widget::*, *};
 
 pub(crate) struct Cell<'a, R: Renderer + 'a> {
     contents: Container<'a, M, R>,
@@ -76,16 +63,18 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
     fn make_value_text(n: Num) -> Text<R> {
         Text::new(n.to_string())
             .size(48) // TODO: look into flexing text size
-            .horizontal_alignment(HorizontalAlignment::Center)
-            .vertical_alignment(VerticalAlignment::Center)
+            .horizontal_alignment(Horizontal::Center)
+            .vertical_alignment(Vertical::Center)
     }
 
     // TODO bold solos
     fn make_possibility_grid(s: &State) -> Column<'a, M, R> {
-        let mut column = Column::new().align_items(Align::Center);
+        let mut column = Column::new().align_items(Alignment::Center);
 
         for y in 0..SIZE {
-            let mut row = Row::new().height(Length::Fill).align_items(Align::Center);
+            let mut row = Row::new()
+                .height(Length::Fill)
+                .align_items(Alignment::Center);
 
             for x in 0..SIZE {
                 let num = y * SIZE + x + 1;
@@ -102,8 +91,8 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
                         .size(14) // TODO: look into flexing text size
                         .color([0.5, 0.5, 0.5])
                         .width(Length::Fill)
-                        .horizontal_alignment(HorizontalAlignment::Center)
-                        .vertical_alignment(VerticalAlignment::Center),
+                        .horizontal_alignment(Horizontal::Center)
+                        .vertical_alignment(Vertical::Center),
                 );
             }
 
@@ -211,17 +200,13 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
     fn draw(
         &self,
         renderer: &mut R,
-        defaults: &R::Defaults,
+        style: &Style,
         layout: Layout,
         cursor_position: Point,
         viewport: &Rectangle,
-    ) -> R::Output {
+    ) {
         self.contents
-            .draw(renderer, defaults, layout, cursor_position, viewport)
-    }
-
-    fn hash_layout(&self, state: &mut Hasher) {
-        self.contents.hash_layout(state);
+            .draw(renderer, style, layout, cursor_position, viewport)
     }
 
     fn on_event(
@@ -231,7 +216,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
         cursor: Point,
         _: &R,
         _: &mut dyn Clipboard,
-        messages: &mut Vec<M>,
+        shell: &mut Shell<'_, M>,
     ) -> event::Status {
         // TODO add arrow key support
         if let Event::Keyboard(e) = event {
@@ -244,14 +229,14 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
 
                     keyboard::Event::KeyPressed {
                         key_code,
-                        modifiers: Modifiers { control: false, .. },
-                    } if to_digit(key_code).is_some() => to_digit(key_code),
+                        modifiers,
+                    } if !modifiers.control() && to_digit(key_code).is_some() => to_digit(key_code),
 
                     keyboard::Event::KeyPressed {
                         key_code,
-                        modifiers: Modifiers { control: true, .. },
-                    } if self.s.handle_possibility(key_code) => {
-                        messages.push(Regen);
+                        modifiers,
+                    } if modifiers.control() && self.s.handle_possibility(key_code) => {
+                        shell.publish(Regen);
                         self.s.value
                     }
 
@@ -260,7 +245,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
 
                 if self.s.value != new_value {
                     self.s.value = new_value;
-                    messages.push(Regen);
+                    shell.publish(Regen);
                 }
 
                 event::Status::Captured
@@ -271,7 +256,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
             let new_focus = layout.bounds().contains(cursor);
             if new_focus != self.s.is_focused {
                 self.s.is_focused = new_focus;
-                messages.push(Redraw);
+                shell.publish(Redraw);
             }
             event::Status::Captured
         } else {

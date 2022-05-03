@@ -2,7 +2,7 @@ use crate::cell::*;
 use crate::prelude::*;
 use arraytools::ArrayTools;
 use arrayvec::ArrayVec;
-use iced::*;
+use iced::{alignment::*, *};
 
 #[derive(Default)]
 pub(crate) struct Sudoku {
@@ -62,8 +62,8 @@ impl Sandbox for Sudoku {
         let clear_button = Button::new(
             &mut self.clear,
             Text::new("Clear")
-                .horizontal_alignment(HorizontalAlignment::Center)
-                .vertical_alignment(VerticalAlignment::Center)
+                .horizontal_alignment(Horizontal::Center)
+                .vertical_alignment(Vertical::Center)
                 .width(Length::Fill),
         )
         .width(Length::Fill)
@@ -72,8 +72,8 @@ impl Sandbox for Sudoku {
         let fill_button = Button::new(
             &mut self.fill,
             Text::new("Fill")
-                .horizontal_alignment(HorizontalAlignment::Center)
-                .vertical_alignment(VerticalAlignment::Center)
+                .horizontal_alignment(Horizontal::Center)
+                .vertical_alignment(Vertical::Center)
                 .width(Length::Fill),
         )
         .width(Length::Fill)

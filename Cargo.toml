@@ -2,13 +2,13 @@
 name = "sudoku"
 version = "0.1.0"
 authors = ["Steven Malis <smmalis37@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-iced = "0.3"
+iced = "0.4"
 iced_native = "*"
 radix_fmt = "1.0"
-arraytools = "0.1.5"
+arraytools = "0.1"
 arrayvec = "0.7"
 
 [profile.release]
