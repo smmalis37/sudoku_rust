@@ -1,8 +1,10 @@
-use crate::cell::*;
-use crate::prelude::*;
 use arraytools::ArrayTools;
 use arrayvec::ArrayVec;
-use iced::{alignment::*, *};
+use iced::Sandbox;
+use iced_native::{alignment::*, widget::*, *};
+
+use crate::cell::*;
+use crate::prelude::*;
 
 #[derive(Default)]
 pub(crate) struct Sudoku {
@@ -12,7 +14,7 @@ pub(crate) struct Sudoku {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub(crate) enum Message {
+pub(crate) enum Msg {
     Regen,
     Fill,
     Clear,
@@ -20,7 +22,7 @@ pub(crate) enum Message {
 }
 
 impl Sandbox for Sudoku {
-    type Message = Message;
+    type Message = Msg;
 
     fn new() -> Self {
         Default::default()
@@ -34,7 +36,7 @@ impl Sandbox for Sudoku {
         Color::BLACK
     }
 
-    fn view(&mut self) -> Element<M> {
+    fn view(&mut self) -> Element<Msg, iced::Renderer> {
         let mut column = Column::new();
 
         for (y, states) in self.cells.iter_mut().enumerate() {
@@ -84,7 +86,7 @@ impl Sandbox for Sudoku {
         column.into()
     }
 
-    fn update(&mut self, message: M) {
+    fn update(&mut self, message: Msg) {
         match message {
             Regen => self.regen(),
 

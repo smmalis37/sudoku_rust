@@ -1,8 +1,9 @@
-use crate::prelude::*;
 use iced_native::{alignment::*, keyboard::KeyCode, renderer::Style, text::Renderer, widget::*, *};
 
+use crate::prelude::*;
+
 pub(crate) struct Cell<'a, R: Renderer + 'a> {
-    contents: Container<'a, M, R>,
+    contents: Container<'a, Msg, R>,
     s: &'a mut State,
 }
 
@@ -48,8 +49,8 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
         }
     }
 
-    fn view(s: &State) -> Container<'a, M, R> {
-        let content: Element<'a, M, R> = match s.value {
+    fn view(s: &State) -> Container<'a, Msg, R> {
+        let content: Element<'a, Msg, R> = match s.value {
             Some(n) => Self::make_value_text(n).into(),
             None => Self::make_possibility_grid(s).into(),
         };
@@ -68,7 +69,7 @@ impl<'a, R: Renderer + 'a> Cell<'a, R> {
     }
 
     // TODO bold solos
-    fn make_possibility_grid(s: &State) -> Column<'a, M, R> {
+    fn make_possibility_grid(s: &State) -> Column<'a, Msg, R> {
         let mut column = Column::new().align_items(Alignment::Center);
 
         for y in 0..SIZE {
@@ -184,7 +185,7 @@ impl State {
     }
 }
 
-impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
+impl<'a, R: Renderer> Widget<Msg, R> for Cell<'a, R> {
     fn width(&self) -> Length {
         Widget::width(&self.contents)
     }
@@ -216,7 +217,7 @@ impl<'a, R: Renderer> Widget<M, R> for Cell<'a, R> {
         cursor: Point,
         _: &R,
         _: &mut dyn Clipboard,
-        shell: &mut Shell<'_, M>,
+        shell: &mut Shell<'_, Msg>,
     ) -> event::Status {
         // TODO add arrow key support
         if let Event::Keyboard(e) = event {
@@ -278,8 +279,8 @@ impl iced::container::StyleSheet for Theme {
     }
 }
 
-impl<'a, R: Renderer> From<Cell<'a, R>> for Element<'a, M, R> {
-    fn from(cell: Cell<'a, R>) -> Element<'a, M, R> {
+impl<'a, R: Renderer> From<Cell<'a, R>> for Element<'a, Msg, R> {
+    fn from(cell: Cell<'a, R>) -> Element<'a, Msg, R> {
         Element::new(cell)
     }
 }

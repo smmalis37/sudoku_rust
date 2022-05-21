@@ -11,7 +11,7 @@ use iced::*;
 
 fn main() -> Result {
     let window_size = (consts::SIZE2 * 80) as u32;
-    <sudoku::Sudoku as Application>::run(Settings {
+    <sudoku::Sudoku as Sandbox>::run(Settings {
         window: window::Settings {
             size: (window_size, window_size),
             resizable: false,
