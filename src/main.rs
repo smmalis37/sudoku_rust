@@ -11,7 +11,7 @@ use druid::{AppLauncher, PlatformError, WindowDesc};
 
 fn main() -> Result<(), PlatformError> {
     AppLauncher::with_window(
-        WindowDesc::new(make_grid)
+        WindowDesc::new(make_grid())
             .title("Sudoku")
             .resizable(false)
             .window_size((SIZE2 as f64 * 80.0, SIZE2 as f64 * 80.0)),

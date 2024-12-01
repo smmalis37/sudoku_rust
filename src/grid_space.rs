@@ -232,7 +232,7 @@ impl Widget<Cell> for GridSpace {
 
     fn lifecycle(&mut self, ctx: &mut LifeCycleCtx, event: &LifeCycle, data: &Cell, env: &Env) {
         match event {
-            LifeCycle::WidgetAdded => ctx.register_for_focus(),
+            LifeCycle::BuildFocusChain => ctx.register_for_focus(),
             LifeCycle::FocusChanged(focused) => {
                 self.set_background_color(data, *focused);
                 ctx.request_paint();

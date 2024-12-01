@@ -5,7 +5,7 @@ authors = ["Steven Malis <smmalis37@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-druid = "0.7"
+druid = { git = "https://github.com/smmalis37/druid", branch = "patch-1" }
 radix_fmt = "1.0"
 arraytools = "0.1"
 arrayvec = "0.7"
